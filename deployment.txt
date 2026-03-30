@@ -1,0 +1,20 @@
+ARC ENS — Deployment Info
+=========================
+Date:             2026-03-31
+Network:          ARC Testnet (Chain ID: 5042002)
+
+Contract:         NameRegistry
+Address:          0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080
+TX Hash (deploy): 0xf776595fb3f79d765f11f7b8b6131ae3ab3574fbbdd350c7dd31ff1e03d4d6cf
+Deployer:         0xe607dAF97eE46b1791b2092Ccafa9160293355d5
+
+Explorer:         https://testnet.arcscan.app/address/0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080
+
+RPC:              https://rpc.testnet.arc.network
+
+Test TX (register 'testname'):
+  TX Hash: 0xd859286e8df9b3a588d62d379b90b740a5e5aa879f64a392750e63a2a56d8683
+  Block:   34628601
+
+Source: NameRegistry.sol (included in this folder)
+Frontend: arc-ens.html (open in browser + MetaMask)

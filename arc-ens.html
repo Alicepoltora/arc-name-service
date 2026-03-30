@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARC Name Service</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0f;
+      color: #e8e8f0;
+      min-height: 100vh;
+    }
+
+    /* --- NAV --- */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px;
+      border-bottom: 1px solid #1e1e2e;
+      background: #0d0d17;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+    .logo span { color: #6366f1; }
+    .network-badge {
+      font-size: 12px;
+      background: #1a1a2e;
+      border: 1px solid #6366f1;
+      color: #a5b4fc;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    #connectBtn {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #connectBtn:hover { background: #4f46e5; }
+    #connectBtn.connected {
+      background: #1e1e2e;
+      border: 1px solid #333;
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    /* --- MAIN --- */
+    main {
+      max-width: 640px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+    h1 .accent { color: #6366f1; }
+    .subtitle {
+      color: #666680;
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+
+    /* --- SEARCH BOX --- */
+    .search-box {
+      background: #111120;
+      border: 1px solid #2a2a3e;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .name-input-wrap {
+      flex: 1;
+      position: relative;
+    }
+    #nameInput {
+      width: 100%;
+      background: #1a1a2e;
+      border: 1px solid #2a2a3e;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 12px 16px;
+      padding-right: 70px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #nameInput:focus { border-color: #6366f1; }
+    #nameInput::placeholder { color: #3a3a5e; font-weight: 400; }
+    .tld-suffix {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6366f1;
+      font-size: 16px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+    #checkBtn {
+      background: #1a1a2e;
+      border: 1px solid #2a2a3e;
+      color: #a5b4fc;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    #checkBtn:hover { border-color: #6366f1; color: #fff; }
+
+    /* --- AVAILABILITY RESULT --- */
+    #availabilityResult {
+      display: none;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    #availabilityResult.available {
+      background: #0d2b1f;
+      border: 1px solid #1a5e3a;
+      color: #4ade80;
+    }
+    #availabilityResult.taken {
+      background: #2b0d0d;
+      border: 1px solid #5e1a1a;
+      color: #f87171;
+    }
+    #availabilityResult.error {
+      background: #1e1a0d;
+      border: 1px solid #5e4a1a;
+      color: #fbbf24;
+    }
+
+    /* --- REGISTER BTN --- */
+    #registerBtn {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    #registerBtn:hover { opacity: 0.92; transform: translateY(-1px); }
+    #registerBtn:active { transform: translateY(0); }
+    #registerBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* --- TX STATUS --- */
+    #txStatus {
+      display: none;
+      margin-top: 14px;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+    }
+    #txStatus.pending {
+      background: #1a1a2e;
+      border: 1px solid #3a3a6e;
+      color: #a5b4fc;
+    }
+    #txStatus.success {
+      background: #0d2b1f;
+      border: 1px solid #1a5e3a;
+      color: #4ade80;
+    }
+    #txStatus.fail {
+      background: #2b0d0d;
+      border: 1px solid #5e1a1a;
+      color: #f87171;
+    }
+    #txStatus a {
+      color: inherit;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    /* --- MY NAMES --- */
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #666680;
+      margin-bottom: 12px;
+    }
+    #myNamesSection {
+      display: none;
+      background: #111120;
+      border: 1px solid #2a2a3e;
+      border-radius: 14px;
+      padding: 20px;
+    }
+    #myNamesList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .name-chip {
+      background: #1a1a35;
+      border: 1px solid #3a3a6e;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #a5b4fc;
+    }
+    .name-chip .chip-tld { color: #6366f1; }
+    .empty-names {
+      color: #3a3a5e;
+      font-size: 14px;
+    }
+
+    /* --- FOOTER --- */
+    footer {
+      text-align: center;
+      color: #333350;
+      font-size: 13px;
+      margin-top: 60px;
+      padding-bottom: 40px;
+    }
+    footer a { color: #4a4a7e; text-decoration: none; }
+    footer a:hover { color: #6366f1; }
+
+    /* --- NETWORK WARNING --- */
+    #networkWarning {
+      display: none;
+      background: #2b1a0d;
+      border: 1px solid #5e3a1a;
+      color: #fbbf24;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    #switchNetBtn {
+      background: #fbbf24;
+      color: #0a0a0f;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">ARC <span>Name</span> Service</div>
+  <div class="network-badge">ARC Testnet</div>
+  <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+</nav>
+
+<main>
+  <h1>Your name on<br><span class="accent">ARC blockchain</span></h1>
+  <p class="subtitle">Register a human-readable name and link it to your ARC address — forever on-chain.</p>
+
+  <div id="networkWarning">
+    ⚠️ Wrong network. Please switch to ARC Testnet.
+    <button id="switchNetBtn" onclick="switchToARC()">Switch Network</button>
+  </div>
+
+  <div class="search-box">
+    <div class="input-row">
+      <div class="name-input-wrap">
+        <input id="nameInput" type="text" placeholder="yourname" autocomplete="off"
+               oninput="onNameInput()" onkeydown="if(event.key==='Enter') checkName()" />
+        <span class="tld-suffix">.arc</span>
+      </div>
+      <button id="checkBtn" onclick="checkName()">Check</button>
+    </div>
+
+    <div id="availabilityResult"></div>
+    <button id="registerBtn" onclick="registerName()">Register name</button>
+    <div id="txStatus"></div>
+  </div>
+
+  <div id="myNamesSection">
+    <div class="section-title">Your names</div>
+    <div id="myNamesList"></div>
+  </div>
+</main>
+
+<footer>
+  <a href="https://testnet.arcscan.app" target="_blank">ArcScan Explorer</a> ·
+  Contract: <a href="https://testnet.arcscan.app/address/0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080" target="_blank">0xEDcd...C080</a>
+</footer>
+
+<script>
+// ─── CONFIG ────────────────────────────────────────────────────────────────
+const CONTRACT_ADDRESS = "0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080";
+const ARC_CHAIN_ID = 5042002;
+const ARC_CHAIN_ID_HEX = "0x4CCDD2";
+const RPC_URL = "https://rpc.testnet.arc.network";
+const EXPLORER = "https://testnet.arcscan.app";
+
+const ABI = [
+  "function register(string calldata name) external",
+  "function resolve(string calldata name) external view returns (address)",
+  "function isAvailable(string calldata name) external view returns (bool)",
+  "function getNames(address owner) external view returns (string[] memory)",
+  "function reverseResolve(address addr) external view returns (string memory)",
+  "event NameRegistered(string indexed name, address indexed owner, uint256 timestamp)"
+];
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let provider = null;
+let signer = null;
+let contract = null;
+let userAddress = null;
+let lastCheckedName = null;
+let isAvailableResult = false;
+
+// ─── WALLET ────────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.ethereum) {
+    alert("MetaMask not found. Please install MetaMask to use ARC Name Service.");
+    return;
+  }
+
+  try {
+    // Request accounts
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    userAddress = await signer.getAddress();
+
+    // Check network
+    const network = await provider.getNetwork();
+    if (Number(network.chainId) !== ARC_CHAIN_ID) {
+      await switchToARC();
+      // Re-init after switch
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+    }
+
+    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+    // Update UI
+    const btn = document.getElementById('connectBtn');
+    btn.textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+    btn.classList.add('connected');
+    btn.onclick = null;
+
+    document.getElementById('networkWarning').style.display = 'none';
+
+    // Load names
+    await loadMyNames();
+
+    // Listen for account / network changes
+    window.ethereum.on('accountsChanged', () => location.reload());
+    window.ethereum.on('chainChanged', () => location.reload());
+
+  } catch (err) {
+    console.error(err);
+    if (err.code !== 4001) {
+      showTxStatus('fail', '❌ ' + (err.message || 'Connection failed'));
+    }
+  }
+}
+
+async function switchToARC() {
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: ARC_CHAIN_ID_HEX }]
+    });
+  } catch (switchErr) {
+    // Chain not added yet — add it
+    if (switchErr.code === 4902) {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+          chainId: ARC_CHAIN_ID_HEX,
+          chainName: 'ARC Testnet',
+          nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+          rpcUrls: [RPC_URL],
+          blockExplorerUrls: [EXPLORER]
+        }]
+      });
+    } else {
+      throw switchErr;
+    }
+  }
+}
+
+// ─── NAME CHECK ────────────────────────────────────────────────────────────
+function onNameInput() {
+  const name = document.getElementById('nameInput').value.trim();
+  document.getElementById('availabilityResult').style.display = 'none';
+  document.getElementById('registerBtn').style.display = 'none';
+  document.getElementById('txStatus').style.display = 'none';
+  lastCheckedName = null;
+  isAvailableResult = false;
+}
+
+async function checkName() {
+  const name = document.getElementById('nameInput').value.trim().toLowerCase();
+  const resultEl = document.getElementById('availabilityResult');
+  const registerBtn = document.getElementById('registerBtn');
+
+  if (!name) return;
+
+  // Validate locally first
+  if (name.length < 3) {
+    showResult('error', '⚠️ Name must be at least 3 characters');
+    return;
+  }
+  if (name.length > 32) {
+    showResult('error', '⚠️ Name must be 32 characters or less');
+    return;
+  }
+  if (!/^[a-z0-9-]+$/.test(name)) {
+    showResult('error', '⚠️ Only lowercase letters, numbers and hyphens allowed');
+    return;
+  }
+
+  resultEl.style.display = 'block';
+  resultEl.className = 'available'; // neutral
+  resultEl.innerHTML = '<span class="spinner"></span> Checking...';
+  registerBtn.style.display = 'none';
+
+  try {
+    // Use public provider if wallet not connected
+    const readProvider = provider || new ethers.JsonRpcProvider(RPC_URL);
+    const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+
+    const available = await readContract.isAvailable(name);
+    lastCheckedName = name;
+    isAvailableResult = available;
+
+    if (available) {
+      showResult('available', `✅ <strong>${name}.arc</strong> is available!`);
+      if (userAddress) {
+        registerBtn.style.display = 'block';
+        registerBtn.textContent = `Register ${name}.arc`;
+      } else {
+        showResult('available', `✅ <strong>${name}.arc</strong> is available! Connect wallet to register.`);
+      }
+    } else {
+      const owner = await readContract.resolve(name);
+      const short = owner.slice(0, 8) + '...' + owner.slice(-6);
+      showResult('taken', `❌ <strong>${name}.arc</strong> is taken · Owner: <a href="${EXPLORER}/address/${owner}" target="_blank">${short}</a>`);
+    }
+  } catch (err) {
+    console.error(err);
+    showResult('error', '⚠️ Error checking name: ' + (err.message || 'RPC error'));
+  }
+}
+
+function showResult(type, html) {
+  const el = document.getElementById('availabilityResult');
+  el.style.display = 'block';
+  el.className = type;
+  el.innerHTML = html;
+}
+
+// ─── REGISTER ──────────────────────────────────────────────────────────────
+async function registerName() {
+  if (!contract || !lastCheckedName || !isAvailableResult) return;
+
+  const name = lastCheckedName;
+  const registerBtn = document.getElementById('registerBtn');
+
+  registerBtn.disabled = true;
+  registerBtn.innerHTML = '<span class="spinner"></span>Waiting for signature...';
+
+  showTxStatus('pending', '<span class="spinner"></span>Waiting for MetaMask signature...');
+
+  try {
+    const tx = await contract.register(name, {
+      maxFeePerGas: ethers.parseUnits('200', 'gwei'),
+      maxPriorityFeePerGas: ethers.parseUnits('1', 'gwei')
+    });
+
+    showTxStatus('pending', `<span class="spinner"></span>Transaction sent · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank">View on Explorer ↗</a>`);
+    registerBtn.innerHTML = '<span class="spinner"></span>Confirming...';
+
+    await tx.wait();
+
+    showTxStatus('success', `✅ <strong>${name}.arc</strong> registered! · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank">View TX ↗</a>`);
+    showResult('taken', `🎉 <strong>${name}.arc</strong> is now yours!`);
+    registerBtn.style.display = 'none';
+
+    // Refresh names
+    await loadMyNames();
+
+  } catch (err) {
+    console.error(err);
+    registerBtn.disabled = false;
+    registerBtn.innerHTML = `Register ${name}.arc`;
+
+    let msg = err.message || 'Transaction failed';
+    if (err.code === 4001) msg = 'Transaction rejected by user.';
+    else if (msg.includes('NameAlreadyTaken')) msg = 'Name was just registered by someone else.';
+    else if (msg.includes('NameTooShort')) msg = 'Name is too short (min 3 chars).';
+    else if (msg.includes('InvalidCharacter')) msg = 'Invalid characters in name.';
+
+    showTxStatus('fail', '❌ ' + msg);
+  }
+}
+
+function showTxStatus(type, html) {
+  const el = document.getElementById('txStatus');
+  el.style.display = 'block';
+  el.className = type;
+  el.innerHTML = html;
+}
+
+// ─── MY NAMES ──────────────────────────────────────────────────────────────
+async function loadMyNames() {
+  if (!contract || !userAddress) return;
+
+  const section = document.getElementById('myNamesSection');
+  const list = document.getElementById('myNamesList');
+  section.style.display = 'block';
+
+  try {
+    const names = await contract.getNames(userAddress);
+    if (names.length === 0) {
+      list.innerHTML = '<span class="empty-names">No names registered yet.</span>';
+    } else {
+      list.innerHTML = names.map(n =>
+        `<span class="name-chip"><a href="${EXPLORER}/address/${userAddress}" target="_blank" style="text-decoration:none;color:inherit">${n}<span class="chip-tld">.arc</span></a></span>`
+      ).join('');
+    }
+  } catch (err) {
+    list.innerHTML = '<span class="empty-names">Could not load names.</span>';
+  }
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  if (window.ethereum) {
+    // Check if already connected
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    if (accounts.length > 0) {
+      connectWallet();
+    }
+  }
+});
+</script>
+</body>
+</html>
