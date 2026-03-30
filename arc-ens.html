@@ -1,351 +1,255 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ARC Name Service</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0a0a0f;
-      color: #e8e8f0;
-      min-height: 100vh;
-    }
-
-    /* --- NAV --- */
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 32px;
-      border-bottom: 1px solid #1e1e2e;
-      background: #0d0d17;
-    }
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: #fff;
-    }
-    .logo span { color: #6366f1; }
-    .network-badge {
-      font-size: 12px;
-      background: #1a1a2e;
-      border: 1px solid #6366f1;
-      color: #a5b4fc;
-      padding: 4px 10px;
-      border-radius: 20px;
-    }
-    #connectBtn {
-      background: #6366f1;
-      color: #fff;
-      border: none;
-      padding: 9px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    #connectBtn:hover { background: #4f46e5; }
-    #connectBtn.connected {
-      background: #1e1e2e;
-      border: 1px solid #333;
-      font-family: monospace;
-      font-size: 13px;
-    }
-
-    /* --- MAIN --- */
-    main {
-      max-width: 640px;
-      margin: 60px auto;
-      padding: 0 20px;
-    }
-
-    h1 {
-      font-size: 42px;
-      font-weight: 800;
-      letter-spacing: -1.5px;
-      line-height: 1.1;
-      margin-bottom: 12px;
-    }
-    h1 .accent { color: #6366f1; }
-    .subtitle {
-      color: #666680;
-      font-size: 16px;
-      margin-bottom: 40px;
-    }
-
-    /* --- SEARCH BOX --- */
-    .search-box {
-      background: #111120;
-      border: 1px solid #2a2a3e;
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 24px;
-    }
-    .input-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .name-input-wrap {
-      flex: 1;
-      position: relative;
-    }
-    #nameInput {
-      width: 100%;
-      background: #1a1a2e;
-      border: 1px solid #2a2a3e;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 18px;
-      font-weight: 600;
-      padding: 12px 16px;
-      padding-right: 70px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    #nameInput:focus { border-color: #6366f1; }
-    #nameInput::placeholder { color: #3a3a5e; font-weight: 400; }
-    .tld-suffix {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #6366f1;
-      font-size: 16px;
-      font-weight: 600;
-      pointer-events: none;
-    }
-    #checkBtn {
-      background: #1a1a2e;
-      border: 1px solid #2a2a3e;
-      color: #a5b4fc;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-    #checkBtn:hover { border-color: #6366f1; color: #fff; }
-
-    /* --- AVAILABILITY RESULT --- */
-    #availabilityResult {
-      display: none;
-      border-radius: 10px;
-      padding: 14px 16px;
-      font-size: 15px;
-      font-weight: 500;
-      margin-bottom: 14px;
-    }
-    #availabilityResult.available {
-      background: #0d2b1f;
-      border: 1px solid #1a5e3a;
-      color: #4ade80;
-    }
-    #availabilityResult.taken {
-      background: #2b0d0d;
-      border: 1px solid #5e1a1a;
-      color: #f87171;
-    }
-    #availabilityResult.error {
-      background: #1e1a0d;
-      border: 1px solid #5e4a1a;
-      color: #fbbf24;
-    }
-
-    /* --- REGISTER BTN --- */
-    #registerBtn {
-      width: 100%;
-      background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
-      color: #fff;
-      border: none;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      display: none;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-    #registerBtn:hover { opacity: 0.92; transform: translateY(-1px); }
-    #registerBtn:active { transform: translateY(0); }
-    #registerBtn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* --- TX STATUS --- */
-    #txStatus {
-      display: none;
-      margin-top: 14px;
-      border-radius: 10px;
-      padding: 14px 16px;
-      font-size: 14px;
-    }
-    #txStatus.pending {
-      background: #1a1a2e;
-      border: 1px solid #3a3a6e;
-      color: #a5b4fc;
-    }
-    #txStatus.success {
-      background: #0d2b1f;
-      border: 1px solid #1a5e3a;
-      color: #4ade80;
-    }
-    #txStatus.fail {
-      background: #2b0d0d;
-      border: 1px solid #5e1a1a;
-      color: #f87171;
-    }
-    #txStatus a {
-      color: inherit;
-      font-weight: 700;
-      text-decoration: underline;
-    }
-
-    /* --- MY NAMES --- */
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #666680;
-      margin-bottom: 12px;
-    }
-    #myNamesSection {
-      display: none;
-      background: #111120;
-      border: 1px solid #2a2a3e;
-      border-radius: 14px;
-      padding: 20px;
-    }
-    #myNamesList {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .name-chip {
-      background: #1a1a35;
-      border: 1px solid #3a3a6e;
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #a5b4fc;
-    }
-    .name-chip .chip-tld { color: #6366f1; }
-    .empty-names {
-      color: #3a3a5e;
-      font-size: 14px;
-    }
-
-    /* --- FOOTER --- */
-    footer {
-      text-align: center;
-      color: #333350;
-      font-size: 13px;
-      margin-top: 60px;
-      padding-bottom: 40px;
-    }
-    footer a { color: #4a4a7e; text-decoration: none; }
-    footer a:hover { color: #6366f1; }
-
-    /* --- NETWORK WARNING --- */
-    #networkWarning {
-      display: none;
-      background: #2b1a0d;
-      border: 1px solid #5e3a1a;
-      color: #fbbf24;
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-    #switchNetBtn {
-      background: #fbbf24;
-      color: #0a0a0f;
-      border: none;
-      padding: 5px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-left: 10px;
-    }
-
-    /* Spinner */
-    .spinner {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ANS — ARC Name Service</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "on-primary-fixed-variant": "#002a61","on-primary-container": "#00214f","primary-dim": "#0070eb",
+          "on-secondary-fixed": "#00288d","on-error": "#490006","primary": "#85adff",
+          "tertiary-container": "#f39cfb","error-container": "#9f0519","inverse-on-surface": "#565554",
+          "secondary": "#7f98ff","on-tertiary-container": "#60136d","surface-container": "#1a1919",
+          "primary-fixed": "#6c9fff","tertiary-fixed-dim": "#e48fec","inverse-primary": "#005bc2",
+          "tertiary-dim": "#e48fec","secondary-fixed-dim": "#b4c1ff","on-background": "#ffffff",
+          "secondary-dim": "#7f98ff","background": "#0e0e0e","surface-dim": "#0e0e0e",
+          "secondary-fixed": "#c6cfff","on-tertiary-fixed-variant": "#6a1f76","outline-variant": "#494847",
+          "tertiary-fixed": "#f39cfb","surface": "#0e0e0e","on-tertiary-fixed": "#41004d",
+          "on-primary": "#002c65","error": "#ff716c","on-primary-fixed": "#000000",
+          "on-secondary-container": "#c5ceff","surface-variant": "#262626","primary-fixed-dim": "#5191ff",
+          "surface-tint": "#85adff","on-error-container": "#ffa8a3","on-surface-variant": "#adaaaa",
+          "surface-container-high": "#201f1f","surface-container-lowest": "#000000","on-tertiary": "#6b1f77",
+          "on-secondary": "#00185e","inverse-surface": "#fcf8f8","error-dim": "#d7383b",
+          "on-surface": "#ffffff","surface-container-low": "#131313","outline": "#777575",
+          "on-secondary-fixed-variant": "#2c48ac","secondary-container": "#1f3da1",
+          "surface-container-highest": "#262626","primary-container": "#6c9fff",
+          "tertiary": "#fab0ff","surface-bright": "#2c2c2c"
+        },
+        fontFamily: {"headline": ["Space Grotesk"],"body": ["Inter"],"label": ["Inter"]},
+        borderRadius: {"DEFAULT": "0.125rem","lg": "0.25rem","xl": "0.5rem","full": "0.75rem"},
+      },
+    },
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .glass-panel { background: rgba(38,38,38,0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .tonal-shift { background: linear-gradient(135deg,rgba(133,173,255,0.05) 0%,rgba(133,173,255,0) 100%); }
+  .spinner { display:inline-block;width:14px;height:14px;border:2px solid rgba(133,173,255,0.3);border-top-color:#85adff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  #searchInput::placeholder { color: #494847; }
+</style>
 </head>
-<body>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary">
 
-<nav>
-  <div class="logo">ARC <span>Name</span> Service</div>
-  <div class="network-badge">ARC Testnet</div>
-  <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+<!-- TOP NAV -->
+<nav class="fixed top-0 w-full z-50 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+  <div class="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto font-['Space_Grotesk'] tracking-tight">
+    <div class="flex items-center gap-8">
+      <span class="text-2xl font-bold bg-gradient-to-br from-blue-400 to-blue-600 bg-clip-text text-transparent">ANS</span>
+      <div class="hidden md:flex gap-6 items-center">
+        <a class="text-blue-400 border-b-2 border-blue-400 pb-1" href="#">Domains</a>
+        <a class="text-zinc-400 hover:text-white transition-colors" href="#">Identity</a>
+        <a href="https://testnet.arcscan.app" target="_blank" class="text-zinc-400 hover:text-white transition-colors">Explorer</a>
+        <a href="https://faucet.circle.com" target="_blank" class="text-zinc-400 hover:text-white transition-colors">Faucet</a>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="relative group hidden sm:block">
+        <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+          <span class="material-symbols-outlined text-zinc-500 text-sm">search</span>
+        </div>
+        <input id="searchInput" class="bg-surface-container-highest border-none rounded-xl pl-10 pr-4 py-2 w-64 text-sm focus:ring-1 focus:ring-primary-dim transition-all" type="text" placeholder="search name..." onkeydown="if(event.key==='Enter') doSearch()" />
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="connectWallet()" id="walletBtn" class="bg-primary-container text-on-primary-container px-4 py-2 rounded-xl text-sm font-bold hover:opacity-90 transition-all active:scale-95">
+          Connect Wallet
+        </button>
+      </div>
+    </div>
+  </div>
 </nav>
 
-<main>
-  <h1>Your name on<br><span class="accent">ARC blockchain</span></h1>
-  <p class="subtitle">Register a human-readable name and link it to your ARC address — forever on-chain.</p>
+<!-- MAIN -->
+<main class="pt-24 pb-12 min-h-screen px-6 max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-  <div id="networkWarning">
-    ⚠️ Wrong network. Please switch to ARC Testnet.
-    <button id="switchNetBtn" onclick="switchToARC()">Switch Network</button>
-  </div>
-
-  <div class="search-box">
-    <div class="input-row">
-      <div class="name-input-wrap">
-        <input id="nameInput" type="text" placeholder="yourname" autocomplete="off"
-               oninput="onNameInput()" onkeydown="if(event.key==='Enter') checkName()" />
-        <span class="tld-suffix">.arc</span>
+  <!-- SIDEBAR -->
+  <aside class="hidden lg:flex lg:col-span-2 flex-col gap-8">
+    <div class="flex flex-col gap-2">
+      <div class="p-3 bg-blue-500/10 text-blue-400 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1">
+        <span class="material-symbols-outlined">language</span><span>Domains</span>
       </div>
-      <button id="checkBtn" onclick="checkName()">Check</button>
+      <div class="p-3 text-zinc-500 hover:text-zinc-200 hover:bg-white/10 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1">
+        <span class="material-symbols-outlined">fingerprint</span><span>Identity</span>
+      </div>
+      <div onclick="window.open('https://testnet.arcscan.app','_blank')" class="p-3 text-zinc-500 hover:text-zinc-200 hover:bg-white/10 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1">
+        <span class="material-symbols-outlined">account_balance</span><span>Explorer</span>
+      </div>
+      <div onclick="window.open('https://faucet.circle.com','_blank')" class="p-3 text-zinc-500 hover:text-zinc-200 hover:bg-white/10 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1">
+        <span class="material-symbols-outlined">water_drop</span><span>Faucet</span>
+      </div>
+    </div>
+    <!-- My Names (sidebar) -->
+    <div id="myNamesSidebar" class="hidden flex-col gap-2">
+      <p class="text-xs uppercase tracking-widest text-zinc-600 px-3 font-label">My Names</p>
+      <div id="myNamesSidebarList" class="flex flex-col gap-1"></div>
+    </div>
+    <div class="mt-auto border-t border-white/5 pt-6 flex flex-col gap-2">
+      <a href="https://docs.arc.network" target="_blank" class="p-3 text-zinc-500 hover:text-zinc-200 flex items-center gap-3 text-sm cursor-pointer">
+        <span class="material-symbols-outlined">description</span><span>Docs</span>
+      </a>
+      <a href="https://github.com/Alicepoltora/arc-name-service" target="_blank" class="p-3 text-zinc-500 hover:text-zinc-200 flex items-center gap-3 text-sm cursor-pointer">
+        <span class="material-symbols-outlined">code</span><span>GitHub</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="lg:col-span-10 space-y-8">
+
+    <!-- NETWORK WARNING -->
+    <div id="networkWarning" class="hidden bg-amber-950/50 border border-amber-800/50 text-amber-400 rounded-xl p-4 flex items-center justify-between">
+      <span class="text-sm">⚠️ Wrong network. Please switch to ARC Testnet (Chain ID: 5042002).</span>
+      <button onclick="switchToARC()" class="bg-amber-400 text-black px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-amber-300 transition-all">Switch Network</button>
     </div>
 
-    <div id="availabilityResult"></div>
-    <button id="registerBtn" onclick="registerName()">Register name</button>
-    <div id="txStatus"></div>
-  </div>
+    <!-- HERO SEARCH (shown when nothing searched yet) -->
+    <div id="heroSection">
+      <div class="py-20 text-center space-y-6">
+        <h1 class="text-5xl font-headline font-bold text-white">Your name on <span class="bg-gradient-to-r from-blue-400 to-primary bg-clip-text text-transparent">ARC</span></h1>
+        <p class="text-on-surface-variant text-lg max-w-md mx-auto">Register a human-readable name and link it to your ARC address — on-chain, forever.</p>
+        <div class="flex gap-3 max-w-lg mx-auto mt-8">
+          <div class="relative flex-1">
+            <input id="heroInput" type="text" placeholder="yourname" onkeydown="if(event.key==='Enter') doSearchHero()"
+              class="w-full bg-surface-container-highest border border-white/10 rounded-xl px-5 py-4 text-xl font-headline focus:ring-1 focus:ring-primary-dim outline-none transition-all pr-16" />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-primary font-bold text-lg">.arc</span>
+          </div>
+          <button onclick="doSearchHero()" class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-4 rounded-xl font-bold hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
+            Search
+          </button>
+        </div>
+      </div>
+    </div>
 
-  <div id="myNamesSection">
-    <div class="section-title">Your names</div>
-    <div id="myNamesList"></div>
+    <!-- SEARCH RESULTS (shown after search) -->
+    <div id="resultsSection" class="hidden space-y-8">
+
+      <!-- MAIN RESULT CARD -->
+      <section class="relative group">
+        <div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-primary-container rounded-full blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+        <div class="relative glass-panel rounded-full p-2 flex flex-col md:flex-row items-center justify-between gap-4 border border-white/5">
+          <div class="flex items-center gap-6 px-6 py-4">
+            <div id="resultIcon" class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">verified</span>
+            </div>
+            <div>
+              <h1 id="resultName" class="text-3xl font-headline font-bold tracking-tight text-white">name.arc</h1>
+              <div class="flex items-center gap-2 mt-1">
+                <span id="resultDot" class="w-2 h-2 rounded-full bg-green-500"></span>
+                <span id="resultStatus" class="text-sm font-label text-on-surface-variant">Available for Registration</span>
+              </div>
+            </div>
+          </div>
+          <div id="resultAction" class="flex items-center gap-8 px-8 py-4 bg-white/5 rounded-full">
+            <div class="text-center md:text-right">
+              <p class="text-xs text-on-surface-variant font-label uppercase tracking-widest">Gas cost</p>
+              <p class="text-xl font-headline font-bold text-white">~$0.01<span class="text-sm font-normal text-on-surface-variant"> USDC</span></p>
+            </div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <button id="registerBtn" onclick="registerName()"
+              class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
+              Register Now
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TX STATUS -->
+      <div id="txStatus" class="hidden rounded-xl p-4 text-sm font-label border"></div>
+
+      <!-- BENTO GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="surface-container-low rounded-full p-8 flex flex-col justify-between border border-white/5 tonal-shift">
+          <div>
+            <span class="material-symbols-outlined text-primary mb-4">event_repeat</span>
+            <h3 class="text-lg font-headline font-medium text-white mb-2">Permanent</h3>
+            <p class="text-sm text-on-surface-variant">Names on ARC are registered permanently — no expiry, no renewal fees. First-come, first-served.</p>
+          </div>
+          <div class="mt-6 flex items-baseline gap-2">
+            <span class="text-2xl font-headline font-bold text-white">∞</span>
+            <span class="text-sm text-on-surface-variant">Days Remaining</span>
+          </div>
+        </div>
+        <div class="surface-container-low rounded-full p-8 col-span-1 md:col-span-2 relative overflow-hidden group border border-white/5">
+          <div class="relative z-10 flex h-full items-center justify-between">
+            <div class="max-w-xs">
+              <h3 class="text-lg font-headline font-medium text-white mb-2">Arc Node Verified</h3>
+              <p class="text-sm text-on-surface-variant">
+                Contract: <a href="https://testnet.arcscan.app/address/0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080" target="_blank" class="text-primary hover:underline font-mono text-xs">0xEDcd...C080</a><br/>
+                Network: ARC Testnet · Chain ID 5042002<br/>
+                <span class="text-green-400 text-xs mt-1 inline-block">● Live on-chain</span>
+              </p>
+            </div>
+            <div class="hidden sm:flex flex-col items-end gap-2 text-right">
+              <span class="text-4xl font-headline font-bold text-primary/30" id="recentCount">...</span>
+              <span class="text-xs text-on-surface-variant">names registered</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUGGESTIONS -->
+      <section>
+        <h2 class="text-xl font-headline font-bold text-white mb-6 flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary">auto_awesome</span>
+          Related Suggestions
+        </h2>
+        <div id="suggestionsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="text-zinc-600 text-sm px-4 py-3">Loading suggestions...</div>
+        </div>
+      </section>
+
+      <!-- RECENT REGISTRATIONS -->
+      <section class="mt-8 pt-8 border-t border-white/5">
+        <h2 class="text-xl font-headline font-bold text-zinc-500 mb-6">Recently Registered</h2>
+        <div id="recentList" class="space-y-3">
+          <div class="text-zinc-600 text-sm">Loading recent names...</div>
+        </div>
+      </section>
+
+    </div><!-- /resultsSection -->
+
+    <!-- MY NAMES PANEL (after connect, before search) -->
+    <div id="myNamesPanel" class="hidden">
+      <h2 class="text-xl font-headline font-bold text-white mb-4 flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">badge</span>
+        My Registered Names
+      </h2>
+      <div id="myNamesPanelList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
   </div>
 </main>
 
-<footer>
-  <a href="https://testnet.arcscan.app" target="_blank">ArcScan Explorer</a> ·
-  Contract: <a href="https://testnet.arcscan.app/address/0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080" target="_blank">0xEDcd...C080</a>
-</footer>
+<!-- ATMOSPHERE -->
+<div class="fixed top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full pointer-events-none z-[-1]"></div>
+<div class="fixed bottom-[-5%] left-[-5%] w-[30%] h-[30%] bg-tertiary/5 blur-[100px] rounded-full pointer-events-none z-[-1]"></div>
 
 <script>
-// ─── CONFIG ────────────────────────────────────────────────────────────────
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
 const CONTRACT_ADDRESS = "0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080";
-const ARC_CHAIN_ID = 5042002;
-const ARC_CHAIN_ID_HEX = "0x4CCDD2";
-const RPC_URL = "https://rpc.testnet.arc.network";
-const EXPLORER = "https://testnet.arcscan.app";
+const ARC_CHAIN_ID     = 5042002;
+const ARC_CHAIN_HEX    = "0x4CCDD2";
+const RPC_URL          = "https://rpc.testnet.arc.network";
+const EXPLORER         = "https://testnet.arcscan.app";
 
 const ABI = [
   "function register(string calldata name) external",
@@ -353,245 +257,364 @@ const ABI = [
   "function isAvailable(string calldata name) external view returns (bool)",
   "function getNames(address owner) external view returns (string[] memory)",
   "function reverseResolve(address addr) external view returns (string memory)",
+  "function nameCount(address owner) external view returns (uint256)",
   "event NameRegistered(string indexed name, address indexed owner, uint256 timestamp)"
 ];
 
-// ─── STATE ─────────────────────────────────────────────────────────────────
-let provider = null;
-let signer = null;
-let contract = null;
-let userAddress = null;
-let lastCheckedName = null;
-let isAvailableResult = false;
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let provider, signer, contract, readContract, userAddress;
+let currentName = null, currentAvailable = false;
 
-// ─── WALLET ────────────────────────────────────────────────────────────────
+// Read-only provider (always available, no wallet needed)
+const publicProvider = new ethers.JsonRpcProvider(RPC_URL);
+readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
+
+// ─── WALLET ──────────────────────────────────────────────────────────────────
 async function connectWallet() {
-  if (!window.ethereum) {
-    alert("MetaMask not found. Please install MetaMask to use ARC Name Service.");
-    return;
-  }
-
+  if (!window.ethereum) { alert("Please install MetaMask."); return; }
   try {
-    // Request accounts
     await window.ethereum.request({ method: 'eth_requestAccounts' });
-
     provider = new ethers.BrowserProvider(window.ethereum);
-    signer = await provider.getSigner();
-    userAddress = await signer.getAddress();
-
-    // Check network
-    const network = await provider.getNetwork();
-    if (Number(network.chainId) !== ARC_CHAIN_ID) {
+    const net = await provider.getNetwork();
+    if (Number(net.chainId) !== ARC_CHAIN_ID) {
       await switchToARC();
-      // Re-init after switch
       provider = new ethers.BrowserProvider(window.ethereum);
-      signer = await provider.getSigner();
     }
+    signer  = await provider.getSigner();
+    userAddress = await signer.getAddress();
+    contract    = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    // Update button
+    const btn = document.getElementById('walletBtn');
+    btn.textContent = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
+    btn.classList.remove('bg-primary-container','text-on-primary-container');
+    btn.classList.add('bg-surface-container-high','text-on-surface-variant','font-mono','text-xs');
 
-    // Update UI
-    const btn = document.getElementById('connectBtn');
-    btn.textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
-    btn.classList.add('connected');
-    btn.onclick = null;
-
-    document.getElementById('networkWarning').style.display = 'none';
-
-    // Load names
+    document.getElementById('networkWarning').classList.add('hidden');
     await loadMyNames();
 
-    // Listen for account / network changes
     window.ethereum.on('accountsChanged', () => location.reload());
-    window.ethereum.on('chainChanged', () => location.reload());
-
-  } catch (err) {
-    console.error(err);
-    if (err.code !== 4001) {
-      showTxStatus('fail', '❌ ' + (err.message || 'Connection failed'));
-    }
+    window.ethereum.on('chainChanged',    () => location.reload());
+  } catch(e) {
+    if (e.code !== 4001) console.error(e);
   }
 }
 
 async function switchToARC() {
   try {
-    await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: ARC_CHAIN_ID_HEX }]
-    });
-  } catch (switchErr) {
-    // Chain not added yet — add it
-    if (switchErr.code === 4902) {
-      await window.ethereum.request({
-        method: 'wallet_addEthereumChain',
-        params: [{
-          chainId: ARC_CHAIN_ID_HEX,
-          chainName: 'ARC Testnet',
-          nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-          rpcUrls: [RPC_URL],
-          blockExplorerUrls: [EXPLORER]
-        }]
-      });
-    } else {
-      throw switchErr;
+    await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:ARC_CHAIN_HEX}] });
+  } catch(e) {
+    if (e.code === 4902) {
+      await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{
+        chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
+        nativeCurrency: { name:'USDC', symbol:'USDC', decimals:18 },
+        rpcUrls: [RPC_URL], blockExplorerUrls: [EXPLORER]
+      }]});
     }
   }
 }
 
-// ─── NAME CHECK ────────────────────────────────────────────────────────────
-function onNameInput() {
-  const name = document.getElementById('nameInput').value.trim();
-  document.getElementById('availabilityResult').style.display = 'none';
-  document.getElementById('registerBtn').style.display = 'none';
-  document.getElementById('txStatus').style.display = 'none';
-  lastCheckedName = null;
-  isAvailableResult = false;
+// ─── SEARCH ──────────────────────────────────────────────────────────────────
+function doSearchHero() {
+  const val = document.getElementById('heroInput').value.trim().toLowerCase();
+  if (!val) return;
+  document.getElementById('searchInput').value = val;
+  performSearch(val);
+}
+function doSearch() {
+  const val = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!val) return;
+  document.getElementById('heroInput').value = val;
+  performSearch(val);
 }
 
-async function checkName() {
-  const name = document.getElementById('nameInput').value.trim().toLowerCase();
-  const resultEl = document.getElementById('availabilityResult');
-  const registerBtn = document.getElementById('registerBtn');
+async function performSearch(name) {
+  // Show results section, hide hero
+  document.getElementById('heroSection').classList.add('hidden');
+  document.getElementById('resultsSection').classList.remove('hidden');
+  document.getElementById('myNamesPanel').classList.add('hidden');
+  document.getElementById('txStatus').classList.add('hidden');
 
-  if (!name) return;
+  // Validate
+  const err = validateName(name);
+  document.getElementById('resultName').textContent = name + '.arc';
 
-  // Validate locally first
-  if (name.length < 3) {
-    showResult('error', '⚠️ Name must be at least 3 characters');
+  if (err) {
+    setResultState('error', err);
+    document.getElementById('resultAction').classList.add('hidden');
+    currentName = null; currentAvailable = false;
     return;
   }
-  if (name.length > 32) {
-    showResult('error', '⚠️ Name must be 32 characters or less');
-    return;
-  }
-  if (!/^[a-z0-9-]+$/.test(name)) {
-    showResult('error', '⚠️ Only lowercase letters, numbers and hyphens allowed');
-    return;
-  }
+  document.getElementById('resultAction').classList.remove('hidden');
 
-  resultEl.style.display = 'block';
-  resultEl.className = 'available'; // neutral
-  resultEl.innerHTML = '<span class="spinner"></span> Checking...';
-  registerBtn.style.display = 'none';
+  // Loading state
+  setResultState('loading', 'Checking availability...');
+  document.getElementById('registerBtn').disabled = true;
+  document.getElementById('registerBtn').textContent = 'Loading...';
 
   try {
-    // Use public provider if wallet not connected
-    const readProvider = provider || new ethers.JsonRpcProvider(RPC_URL);
-    const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
-
     const available = await readContract.isAvailable(name);
-    lastCheckedName = name;
-    isAvailableResult = available;
+    currentName = name;
+    currentAvailable = available;
 
     if (available) {
-      showResult('available', `✅ <strong>${name}.arc</strong> is available!`);
-      if (userAddress) {
-        registerBtn.style.display = 'block';
-        registerBtn.textContent = `Register ${name}.arc`;
+      setResultState('available', 'Available for Registration');
+      document.getElementById('registerBtn').disabled = false;
+      document.getElementById('registerBtn').textContent = 'Register Now';
+      if (!userAddress) {
+        document.getElementById('registerBtn').textContent = 'Connect Wallet';
+        document.getElementById('registerBtn').onclick = connectWallet;
       } else {
-        showResult('available', `✅ <strong>${name}.arc</strong> is available! Connect wallet to register.`);
+        document.getElementById('registerBtn').onclick = registerName;
       }
     } else {
       const owner = await readContract.resolve(name);
-      const short = owner.slice(0, 8) + '...' + owner.slice(-6);
-      showResult('taken', `❌ <strong>${name}.arc</strong> is taken · Owner: <a href="${EXPLORER}/address/${owner}" target="_blank">${short}</a>`);
+      const short  = owner.slice(0,8) + '...' + owner.slice(-6);
+      setResultState('taken', `Taken · Owner: ${short}`);
+      document.getElementById('resultAction').innerHTML = `
+        <div class="flex items-center gap-4 px-4">
+          <a href="${EXPLORER}/address/${owner}" target="_blank"
+             class="text-sm font-mono text-zinc-400 hover:text-primary transition-colors">${short}</a>
+          <a href="${EXPLORER}/address/${CONTRACT_ADDRESS}" target="_blank"
+             class="border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-white/5 transition-all">View on Explorer</a>
+        </div>`;
     }
-  } catch (err) {
-    console.error(err);
-    showResult('error', '⚠️ Error checking name: ' + (err.message || 'RPC error'));
+
+    loadSuggestions(name);
+    loadRecentNames();
+    loadRecentCount();
+
+  } catch(e) {
+    setResultState('error', 'RPC error: ' + (e.message || 'unknown'));
+    document.getElementById('registerBtn').textContent = 'Error';
   }
 }
 
-function showResult(type, html) {
-  const el = document.getElementById('availabilityResult');
-  el.style.display = 'block';
-  el.className = type;
-  el.innerHTML = html;
+function setResultState(state, text) {
+  const dot    = document.getElementById('resultDot');
+  const status = document.getElementById('resultStatus');
+  const icon   = document.getElementById('resultIcon');
+  status.textContent = text;
+  dot.className   = 'w-2 h-2 rounded-full ';
+  icon.className  = 'w-12 h-12 rounded-full flex items-center justify-center ';
+  if (state === 'available') {
+    dot.className  += 'bg-green-500';
+    icon.className += 'bg-primary/10 text-primary';
+    icon.innerHTML  = '<span class="material-symbols-outlined text-3xl" style="font-variation-settings:\'FILL\' 1;">verified</span>';
+  } else if (state === 'taken') {
+    dot.className  += 'bg-red-500';
+    icon.className += 'bg-red-500/10 text-red-400';
+    icon.innerHTML  = '<span class="material-symbols-outlined text-3xl" style="font-variation-settings:\'FILL\' 1;">cancel</span>';
+  } else if (state === 'loading') {
+    dot.className  += 'bg-zinc-500';
+    icon.className += 'bg-zinc-500/10 text-zinc-400';
+    icon.innerHTML  = '<span class="spinner"></span>';
+  } else {
+    dot.className  += 'bg-amber-500';
+    icon.className += 'bg-amber-500/10 text-amber-400';
+    icon.innerHTML  = '<span class="material-symbols-outlined text-3xl">warning</span>';
+  }
 }
 
-// ─── REGISTER ──────────────────────────────────────────────────────────────
+// ─── REGISTER ────────────────────────────────────────────────────────────────
 async function registerName() {
-  if (!contract || !lastCheckedName || !isAvailableResult) return;
+  if (!currentName || !currentAvailable) return;
+  if (!userAddress) { await connectWallet(); return; }
 
-  const name = lastCheckedName;
-  const registerBtn = document.getElementById('registerBtn');
-
-  registerBtn.disabled = true;
-  registerBtn.innerHTML = '<span class="spinner"></span>Waiting for signature...';
-
-  showTxStatus('pending', '<span class="spinner"></span>Waiting for MetaMask signature...');
+  const btn = document.getElementById('registerBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Waiting...';
+  showTx('pending', '<span class="spinner"></span>Waiting for MetaMask signature...');
 
   try {
-    const tx = await contract.register(name, {
-      maxFeePerGas: ethers.parseUnits('200', 'gwei'),
-      maxPriorityFeePerGas: ethers.parseUnits('1', 'gwei')
+    const tx = await contract.register(currentName, {
+      maxFeePerGas:         ethers.parseUnits('200','gwei'),
+      maxPriorityFeePerGas: ethers.parseUnits('1','gwei')
     });
-
-    showTxStatus('pending', `<span class="spinner"></span>Transaction sent · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank">View on Explorer ↗</a>`);
-    registerBtn.innerHTML = '<span class="spinner"></span>Confirming...';
+    showTx('pending', `<span class="spinner"></span>Transaction sent · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" class="underline font-bold">View on Explorer ↗</a>`);
+    btn.innerHTML = '<span class="spinner"></span>Confirming...';
 
     await tx.wait();
 
-    showTxStatus('success', `✅ <strong>${name}.arc</strong> registered! · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank">View TX ↗</a>`);
-    showResult('taken', `🎉 <strong>${name}.arc</strong> is now yours!`);
-    registerBtn.style.display = 'none';
-
-    // Refresh names
+    showTx('success', `✅ <strong>${currentName}.arc</strong> registered! · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" class="underline font-bold">View TX ↗</a>`);
+    setResultState('taken', 'Registered · Owner: you');
+    currentAvailable = false;
+    document.getElementById('resultAction').innerHTML = `
+      <div class="flex items-center gap-4 px-4">
+        <span class="text-green-400 font-bold text-sm">🎉 Yours!</span>
+        <a href="${EXPLORER}/tx/${tx.hash}" target="_blank"
+           class="border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-white/5 transition-all">View TX ↗</a>
+      </div>`;
     await loadMyNames();
-
-  } catch (err) {
-    console.error(err);
-    registerBtn.disabled = false;
-    registerBtn.innerHTML = `Register ${name}.arc`;
-
-    let msg = err.message || 'Transaction failed';
-    if (err.code === 4001) msg = 'Transaction rejected by user.';
-    else if (msg.includes('NameAlreadyTaken')) msg = 'Name was just registered by someone else.';
-    else if (msg.includes('NameTooShort')) msg = 'Name is too short (min 3 chars).';
-    else if (msg.includes('InvalidCharacter')) msg = 'Invalid characters in name.';
-
-    showTxStatus('fail', '❌ ' + msg);
+    loadRecentNames();
+    loadRecentCount();
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Register Now';
+    let msg = e.message || 'Transaction failed';
+    if (e.code === 4001) msg = 'Rejected by user.';
+    else if (msg.includes('NameAlreadyTaken')) msg = 'Name was just taken by someone else.';
+    else if (msg.includes('InvalidCharacter'))  msg = 'Invalid characters in name.';
+    showTx('fail', '❌ ' + msg);
   }
 }
 
-function showTxStatus(type, html) {
-  const el = document.getElementById('txStatus');
-  el.style.display = 'block';
-  el.className = type;
-  el.innerHTML = html;
+// ─── SUGGESTIONS ─────────────────────────────────────────────────────────────
+async function loadSuggestions(name) {
+  const variants = [
+    'get' + name, name + 'app', name + 'dao',
+    'the' + name, name + 'xyz', 'i' + name, name + '0'
+  ].slice(0, 4);
+
+  const list = document.getElementById('suggestionsList');
+  list.innerHTML = variants.map(v => `
+    <div class="surface-container-low p-4 rounded-full border border-white/5 flex items-center justify-between group hover:bg-surface-container-high transition-colors" id="sug-${v}">
+      <div class="flex items-center gap-4 px-2">
+        <span class="font-headline font-medium text-white">${v}.arc</span>
+        <span id="sug-badge-${v}" class="text-xs text-zinc-600">checking...</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="performSearch('${v}')" class="p-2 text-primary hover:bg-primary/10 rounded-full transition-all active:scale-90">
+          <span class="material-symbols-outlined">search</span>
+        </button>
+      </div>
+    </div>`).join('');
+
+  // Check each availability
+  for (const v of variants) {
+    try {
+      const ok = await readContract.isAvailable(v);
+      const badge = document.getElementById(`sug-badge-${v}`);
+      if (badge) {
+        badge.textContent = ok ? '✓ Available' : '✗ Taken';
+        badge.className = 'text-xs font-bold ' + (ok ? 'text-green-400' : 'text-red-400/60');
+      }
+    } catch{}
+  }
 }
 
-// ─── MY NAMES ──────────────────────────────────────────────────────────────
+// ─── RECENT NAMES ────────────────────────────────────────────────────────────
+async function loadRecentNames() {
+  const list = document.getElementById('recentList');
+  try {
+    const iface  = new ethers.Interface(ABI);
+    const filter = { address: CONTRACT_ADDRESS, topics: [ethers.id("NameRegistered(string,address,uint256)")] };
+    const latest = await publicProvider.getBlockNumber();
+    const logs   = await publicProvider.getLogs({ ...filter, fromBlock: Math.max(0, latest - 5000), toBlock: 'latest' });
+
+    if (!logs.length) { list.innerHTML = '<p class="text-zinc-600 text-sm">No names registered yet.</p>'; return; }
+
+    // Show last 4
+    const recent = logs.slice(-4).reverse();
+    list.innerHTML = recent.map(log => {
+      const decoded = iface.parseLog(log);
+      const name    = decoded.args[0];
+      const owner   = decoded.args[1];
+      const short   = owner.slice(0,6) + '...' + owner.slice(-4);
+      return `
+      <div class="glass-panel border border-white/5 rounded-full p-5 flex items-center justify-between">
+        <div class="flex items-center gap-5">
+          <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-primary text-sm">badge</span>
+          </div>
+          <div>
+            <h3 class="text-lg font-headline font-bold text-white">${name}.arc</h3>
+            <div class="flex gap-4 mt-0.5">
+              <span class="text-xs text-on-surface-variant font-label flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">person</span>
+                <a href="${EXPLORER}/address/${owner}" target="_blank" class="hover:text-primary transition-colors font-mono">${short}</a>
+              </span>
+            </div>
+          </div>
+        </div>
+        <a href="${EXPLORER}/tx/${log.transactionHash}" target="_blank"
+           class="px-4 py-2 border border-white/10 rounded-full text-xs font-bold text-white hover:bg-white/5 transition-all">
+          View TX ↗
+        </a>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<p class="text-zinc-600 text-sm">Could not load recent names.</p>';
+  }
+}
+
+async function loadRecentCount() {
+  try {
+    const filter = { address: CONTRACT_ADDRESS, topics: [ethers.id("NameRegistered(string,address,uint256)")] };
+    const latest = await publicProvider.getBlockNumber();
+    const logs   = await publicProvider.getLogs({ ...filter, fromBlock: 0, toBlock: 'latest' });
+    document.getElementById('recentCount').textContent = logs.length;
+  } catch{}
+}
+
+// ─── MY NAMES ────────────────────────────────────────────────────────────────
 async function loadMyNames() {
   if (!contract || !userAddress) return;
-
-  const section = document.getElementById('myNamesSection');
-  const list = document.getElementById('myNamesList');
-  section.style.display = 'block';
-
   try {
     const names = await contract.getNames(userAddress);
-    if (names.length === 0) {
-      list.innerHTML = '<span class="empty-names">No names registered yet.</span>';
-    } else {
-      list.innerHTML = names.map(n =>
-        `<span class="name-chip"><a href="${EXPLORER}/address/${userAddress}" target="_blank" style="text-decoration:none;color:inherit">${n}<span class="chip-tld">.arc</span></a></span>`
-      ).join('');
+
+    // Sidebar
+    const sidebar = document.getElementById('myNamesSidebar');
+    const sList   = document.getElementById('myNamesSidebarList');
+    if (names.length > 0) {
+      sidebar.classList.remove('hidden');
+      sidebar.classList.add('flex');
+      sList.innerHTML = names.map(n => `
+        <button onclick="performSearch('${n}')" class="p-3 text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 text-sm transition-all text-left">
+          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>${n}.arc
+        </button>`).join('');
     }
-  } catch (err) {
-    list.innerHTML = '<span class="empty-names">Could not load names.</span>';
-  }
+
+    // Main panel (only if results not shown)
+    const panel = document.getElementById('myNamesPanel');
+    const pList = document.getElementById('myNamesPanelList');
+    if (!document.getElementById('resultsSection').classList.contains('hidden')) return;
+    if (names.length > 0) {
+      panel.classList.remove('hidden');
+      pList.innerHTML = names.map(n => `
+        <div class="glass-panel border border-white/5 rounded-full p-5 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">badge</span>
+            </div>
+            <div>
+              <p class="font-headline font-bold text-white text-lg">${n}.arc</p>
+              <p class="text-xs text-green-400">● Registered</p>
+            </div>
+          </div>
+          <a href="${EXPLORER}/address/${userAddress}" target="_blank"
+             class="px-4 py-2 border border-white/10 rounded-full text-xs font-bold text-white hover:bg-white/5 transition-all">View ↗</a>
+        </div>`).join('');
+    }
+  } catch(e) { console.error(e); }
 }
 
-// ─── INIT ──────────────────────────────────────────────────────────────────
+// ─── TX STATUS ───────────────────────────────────────────────────────────────
+function showTx(type, html) {
+  const el = document.getElementById('txStatus');
+  el.classList.remove('hidden');
+  el.innerHTML = html;
+  el.className = 'rounded-xl p-4 text-sm font-label border ';
+  if (type === 'pending') el.className += 'bg-surface-container border-white/10 text-on-surface-variant';
+  if (type === 'success') el.className += 'bg-green-950/50 border-green-800/50 text-green-400';
+  if (type === 'fail')    el.className += 'bg-red-950/50 border-red-800/50 text-red-400';
+}
+
+// ─── VALIDATE ────────────────────────────────────────────────────────────────
+function validateName(name) {
+  if (name.length < 3)  return 'Name must be at least 3 characters';
+  if (name.length > 32) return 'Name must be 32 characters or less';
+  if (!/^[a-z0-9-]+$/.test(name)) return 'Only lowercase letters, numbers, hyphens allowed';
+  return null;
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
   if (window.ethereum) {
-    // Check if already connected
-    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-    if (accounts.length > 0) {
-      connectWallet();
-    }
+    const accounts = await window.ethereum.request({ method:'eth_accounts' });
+    if (accounts.length > 0) connectWallet();
   }
+  loadRecentCount();
 });
 </script>
 </body>
