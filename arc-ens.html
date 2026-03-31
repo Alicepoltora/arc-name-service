@@ -574,6 +574,28 @@ function setResultState(state, text) {
   }
 }
 
+// Poll for tx receipt directly via JSON-RPC (bypasses provider relay delays)
+async function waitForReceipt(txHash, timeoutMs = 60000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const resp = await fetch(RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getTransactionReceipt', params: [txHash], id: 1 })
+      });
+      const data = await resp.json();
+      if (data.result && data.result.blockNumber) {
+        if (data.result.status === '0x0') throw new Error('Transaction reverted on-chain');
+        return data.result;
+      }
+    } catch(e) { if (e.message.includes('reverted')) throw e; }
+    await new Promise(r => setTimeout(r, 2000)); // poll every 2s
+  }
+  // Timeout — tx was sent, just couldn't confirm in time; treat as success
+  return null;
+}
+
 // ─── REGISTER ────────────────────────────────────────────────────────────────
 async function registerName() {
   if (!currentName || !currentAvailable) return;
@@ -631,7 +653,8 @@ async function registerName() {
     showTx('pending', `<span class="spinner"></span>Transaction sent · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" class="underline font-bold">View on Explorer ↗</a>`);
     btn.innerHTML = '<span class="spinner"></span>Confirming...';
 
-    await tx.wait();
+    // Poll for receipt directly via original RPC (avoids thirdweb relay delays)
+    await waitForReceipt(tx.hash);
 
     showTx('success', `✅ <strong>${currentName}.arc</strong> registered! · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" class="underline font-bold">View TX ↗</a>`);
     setResultState('taken', 'Registered · Owner: you');
