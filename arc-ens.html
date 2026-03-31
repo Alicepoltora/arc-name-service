@@ -421,16 +421,33 @@ function disconnectWallet() {
 }
 
 async function switchToARC() {
-  // Step 1: try to switch directly (chain already in MetaMask)
+  const THIRDWEB_RPC = 'https://arc-testnet.rpc.thirdweb.com'; // same chain, different domain
+
+  // Step 1: chain already in MetaMask — just switch
   try {
     await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_CHAIN_HEX }] });
     return;
   } catch(e) {
-    if (e.code === 4001) return; // user rejected
+    if (e.code === 4001) return;
     if (e.code !== 4902 && e.code !== -32603) throw e;
   }
 
-  // Step 2: try to add the network with correct chain ID
+  // Step 2: try to add using thirdweb RPC (different domain — no conflict with existing networks)
+  try {
+    await window.ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [{
+        chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
+        nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+        rpcUrls: [THIRDWEB_RPC, RPC_URL], blockExplorerUrls: [EXPLORER]
+      }]
+    });
+    return;
+  } catch(e2) {
+    if (e2.code === 4001) return;
+  }
+
+  // Step 3: try original RPC as fallback
   try {
     await window.ethereum.request({
       method: 'wallet_addEthereumChain',
@@ -441,61 +458,18 @@ async function switchToARC() {
       }]
     });
     return;
-  } catch(addErr) {
-    if (addErr.code === 4001) return;
-
-    const msg = (addErr.message || '').toLowerCase();
-    const isSameRpc = msg.includes('same rpc') || msg.includes('rpc endpoint') || msg.includes('already exists');
-    if (!isSameRpc) throw addErr;
-
-    // Step 3: MetaMask has an old "Arc Testnet" entry with same RPC but wrong chain ID.
-    // Try to "relocate" that old entry to a different RPC so ours can take the original.
-    // MetaMask allows updating an existing chain via wallet_addEthereumChain.
-    const altRpcs = [
-      'https://rpc.testnet.arc.network/',       // trailing slash variant
-      'https://rpc.testnet.arc.network:443',    // explicit port variant
-    ];
-    const knownWrongChains = ['0x4d0b12', '0x4CCDD2', '0x4CEF52'];
-
-    for (const wrongChain of knownWrongChains) {
-      if (wrongChain.toLowerCase() === ARC_CHAIN_HEX.toLowerCase()) continue;
-      for (const altRpc of altRpcs) {
-        try {
-          // "Move" the wrong chain to an alternate RPC URL to free our RPC slot
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: wrongChain, chainName: 'Arc Testnet (legacy)',
-              nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-              rpcUrls: [altRpc], blockExplorerUrls: [EXPLORER]
-            }]
-          });
-          // Now try again to add the correct network
-          try {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [{
-                chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
-                nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-                rpcUrls: [RPC_URL], blockExplorerUrls: [EXPLORER]
-              }]
-            });
-            return;
-          } catch(e2) { if (e2.code === 4001) return; /* continue */ }
-        } catch(moveErr) { if (moveErr.code === 4001) return; /* continue */ }
-      }
-    }
-
-    // Step 4: All automated fixes failed — show clear instructions
-    throw new Error(
-      'Нужно вручную исправить MetaMask:\n\n' +
-      '1. Откройте MetaMask\n' +
-      '2. Settings → Networks\n' +
-      '3. Найдите "Arc Testnet" → удалите её\n' +
-      '4. Нажмите "Switch Network" снова\n\n' +
-      '(Правильный Chain ID: 5042002)'
-    );
+  } catch(e3) {
+    if (e3.code === 4001) return;
   }
+
+  // Step 4: nothing worked — show manual instructions
+  throw new Error(
+    'Не удалось добавить сеть автоматически.\n\n' +
+    'Исправьте вручную в MetaMask:\n' +
+    '1. Settings → Networks → найдите "Arc Testnet" → удалите\n' +
+    '2. Вернитесь и нажмите "Switch Network"\n\n' +
+    'Правильный Chain ID: 5042002 (0x4cef52)'
+  );
 }
 
 // ─── SEARCH ──────────────────────────────────────────────────────────────────
