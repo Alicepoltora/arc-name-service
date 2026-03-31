@@ -312,19 +312,25 @@ async function connectWallet() {
       await new Promise(r => setTimeout(r, 500));
     }
 
-    // 3. Create provider AFTER network is confirmed switched
-    provider    = new ethers.BrowserProvider(window.ethereum);
-    signer      = await provider.getSigner();
-    userAddress = await signer.getAddress();
-    contract    = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    // 3. Get address directly from MetaMask — no ethers.js involved, instant and reliable
+    userAddress = accounts[0];
 
-    // 4. Update button
+    // 4. Update button IMMEDIATELY — before any async ethers.js calls
     btn.disabled = false;
     btn.textContent = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
     btn.classList.remove('bg-primary-container','text-on-primary-container');
     btn.classList.add('bg-surface-container-high','text-on-surface-variant','font-mono','text-xs');
-
     document.getElementById('networkWarning').classList.add('hidden');
+
+    // 5. Setup ethers provider in background (needed for register tx)
+    try {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer   = await provider.getSigner();
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    } catch(providerErr) {
+      // Provider init failed — signer not ready, but wallet is connected visually
+      console.warn('Provider setup deferred:', providerErr);
+    }
 
     await loadMyNames();
 
