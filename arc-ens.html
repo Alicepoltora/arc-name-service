@@ -271,95 +271,92 @@ readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
 // ─── WALLET ──────────────────────────────────────────────────────────────────
 async function connectWallet() {
-  if (!window.ethereum) { alert("Please install MetaMask."); return; }
+  if (!window.ethereum) {
+    alert('MetaMask not found. Please install MetaMask extension.');
+    return;
+  }
 
   const btn = document.getElementById('walletBtn');
-  const prevText = btn.textContent;
   btn.textContent = 'Connecting...';
   btn.disabled = true;
 
   try {
-    // 1. Request accounts
+    // STEP 1: Get accounts — this is the ONLY thing that can show a MetaMask popup here
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    if (!accounts || accounts.length === 0) throw new Error('No accounts');
+    if (!accounts || !accounts.length) throw new Error('No accounts returned');
 
-    // 2. Check network via direct call (avoids ethers.js timing issues)
-    const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
-    if (parseInt(chainIdHex, 16) !== ARC_CHAIN_ID) {
-      btn.textContent = 'Switching network...';
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: ARC_CHAIN_HEX }]
-        });
-      } catch (switchErr) {
-        if (switchErr.code === 4902 || switchErr.code === -32603) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: ARC_CHAIN_HEX,
-              chainName: 'ARC Testnet',
-              nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-              rpcUrls: [RPC_URL],
-              blockExplorerUrls: [EXPLORER]
-            }]
-          });
-        } else {
-          throw switchErr;
-        }
-      }
-      // Let MetaMask finish switching before creating provider
-      await new Promise(r => setTimeout(r, 500));
-    }
-
-    // 3. Get address directly from MetaMask — no ethers.js involved, instant and reliable
+    // STEP 2: Update button IMMEDIATELY with address — no network check, no ethers.js
     userAddress = accounts[0];
-
-    // 4. Update button IMMEDIATELY — before any async ethers.js calls
     btn.disabled = false;
     btn.textContent = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
-    btn.classList.remove('bg-primary-container','text-on-primary-container');
-    btn.classList.add('bg-surface-container-high','text-on-surface-variant','font-mono','text-xs');
-    document.getElementById('networkWarning').classList.add('hidden');
+    btn.classList.remove('bg-primary-container', 'text-on-primary-container');
+    btn.classList.add('bg-surface-container-high', 'text-on-surface-variant', 'font-mono', 'text-xs');
 
-    // 5. Setup ethers provider in background (needed for register tx)
-    try {
-      provider = new ethers.BrowserProvider(window.ethereum);
-      signer   = await provider.getSigner();
-      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-    } catch(providerErr) {
-      // Provider init failed — signer not ready, but wallet is connected visually
-      console.warn('Provider setup deferred:', providerErr);
-    }
+    // STEP 3: Init ethers provider silently in background
+    initProvider();
 
-    await loadMyNames();
+    // STEP 4: Check network and show banner if wrong (don't block UI)
+    checkNetwork();
 
-    // 5. Register listeners only after successful connect
-    window.ethereum.removeAllListeners?.('accountsChanged');
-    window.ethereum.removeAllListeners?.('chainChanged');
-    window.ethereum.on('accountsChanged', (accs) => {
-      if (!accs || accs.length === 0) location.reload();
-      else { userAddress = null; connectWallet(); }
-    });
-    window.ethereum.on('chainChanged', () => location.reload());
+    // STEP 5: Load names
+    loadMyNames();
+
+    // STEP 6: Listen for changes
+    try { window.ethereum.removeAllListeners('accountsChanged'); } catch(_) {}
+    try { window.ethereum.removeAllListeners('chainChanged'); } catch(_) {}
+    window.ethereum.on('accountsChanged', (a) => { if (!a || !a.length) location.reload(); else { userAddress = a[0]; } });
+    window.ethereum.on('chainChanged', () => { initProvider(); checkNetwork(); });
 
   } catch(e) {
     btn.disabled = false;
-    btn.textContent = prevText;
-    if (e.code !== 4001) console.error('connectWallet error:', e);
+    btn.textContent = 'Connect Wallet';
+    if (e.code !== 4001) {
+      // Show error visibly so we can debug
+      const warn = document.getElementById('networkWarning');
+      warn.querySelector('span').textContent = '❌ Connect error: ' + (e.message || String(e));
+      warn.classList.remove('hidden');
+    }
   }
+}
+
+function initProvider() {
+  try {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    provider.getSigner().then(s => {
+      signer = s;
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    }).catch(e => console.warn('getSigner:', e));
+  } catch(e) { console.warn('initProvider:', e); }
+}
+
+async function checkNetwork() {
+  try {
+    const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
+    const warn = document.getElementById('networkWarning');
+    if (parseInt(chainHex, 16) !== ARC_CHAIN_ID) {
+      warn.querySelector('span').textContent = '⚠️ Wrong network. Switch to ARC Testnet (Chain ID: 5042002).';
+      warn.classList.remove('hidden');
+    } else {
+      warn.classList.add('hidden');
+    }
+  } catch(e) {}
 }
 
 async function switchToARC() {
   try {
-    await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:ARC_CHAIN_HEX}] });
+    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_CHAIN_HEX }] });
   } catch(e) {
     if (e.code === 4902 || e.code === -32603) {
-      await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{
-        chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
-        nativeCurrency: { name:'USDC', symbol:'USDC', decimals:18 },
-        rpcUrls: [RPC_URL], blockExplorerUrls: [EXPLORER]
-      }]});
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+          chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
+          nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+          rpcUrls: [RPC_URL], blockExplorerUrls: [EXPLORER]
+        }]
+      });
+    } else if (e.code !== 4001) {
+      throw e;
     }
   }
 }
@@ -474,6 +471,31 @@ async function registerName() {
   const btn = document.getElementById('registerBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Waiting...';
+  showTx('pending', '<span class="spinner"></span>Preparing...');
+
+  // Ensure on ARC testnet before sending tx
+  try {
+    const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
+    if (parseInt(chainHex, 16) !== ARC_CHAIN_ID) {
+      showTx('pending', '<span class="spinner"></span>Switching to ARC Testnet...');
+      await switchToARC();
+      await new Promise(r => setTimeout(r, 600));
+      initProvider();
+      await new Promise(r => setTimeout(r, 400));
+    }
+    // Re-init contract if needed
+    if (!contract) {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Register Now';
+    showTx('fail', '❌ Network switch failed: ' + (e.message || String(e)));
+    return;
+  }
+
   showTx('pending', '<span class="spinner"></span>Waiting for MetaMask signature...');
 
   try {
