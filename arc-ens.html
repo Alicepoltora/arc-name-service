@@ -272,31 +272,75 @@ readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 // ─── WALLET ──────────────────────────────────────────────────────────────────
 async function connectWallet() {
   if (!window.ethereum) { alert("Please install MetaMask."); return; }
+
+  const btn = document.getElementById('walletBtn');
+  const prevText = btn.textContent;
+  btn.textContent = 'Connecting...';
+  btn.disabled = true;
+
   try {
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    provider = new ethers.BrowserProvider(window.ethereum);
-    const net = await provider.getNetwork();
-    if (Number(net.chainId) !== ARC_CHAIN_ID) {
-      await switchToARC();
-      provider = new ethers.BrowserProvider(window.ethereum);
+    // 1. Request accounts
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    if (!accounts || accounts.length === 0) throw new Error('No accounts');
+
+    // 2. Check network via direct call (avoids ethers.js timing issues)
+    const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+    if (parseInt(chainIdHex, 16) !== ARC_CHAIN_ID) {
+      btn.textContent = 'Switching network...';
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: ARC_CHAIN_HEX }]
+        });
+      } catch (switchErr) {
+        if (switchErr.code === 4902 || switchErr.code === -32603) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: ARC_CHAIN_HEX,
+              chainName: 'ARC Testnet',
+              nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+              rpcUrls: [RPC_URL],
+              blockExplorerUrls: [EXPLORER]
+            }]
+          });
+        } else {
+          throw switchErr;
+        }
+      }
+      // Let MetaMask finish switching before creating provider
+      await new Promise(r => setTimeout(r, 500));
     }
-    signer  = await provider.getSigner();
+
+    // 3. Create provider AFTER network is confirmed switched
+    provider    = new ethers.BrowserProvider(window.ethereum);
+    signer      = await provider.getSigner();
     userAddress = await signer.getAddress();
     contract    = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-    // Update button
-    const btn = document.getElementById('walletBtn');
+    // 4. Update button
+    btn.disabled = false;
     btn.textContent = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
     btn.classList.remove('bg-primary-container','text-on-primary-container');
     btn.classList.add('bg-surface-container-high','text-on-surface-variant','font-mono','text-xs');
 
     document.getElementById('networkWarning').classList.add('hidden');
+
     await loadMyNames();
 
-    window.ethereum.on('accountsChanged', () => location.reload());
-    window.ethereum.on('chainChanged',    () => location.reload());
+    // 5. Register listeners only after successful connect
+    window.ethereum.removeAllListeners?.('accountsChanged');
+    window.ethereum.removeAllListeners?.('chainChanged');
+    window.ethereum.on('accountsChanged', (accs) => {
+      if (!accs || accs.length === 0) location.reload();
+      else { userAddress = null; connectWallet(); }
+    });
+    window.ethereum.on('chainChanged', () => location.reload());
+
   } catch(e) {
-    if (e.code !== 4001) console.error(e);
+    btn.disabled = false;
+    btn.textContent = prevText;
+    if (e.code !== 4001) console.error('connectWallet error:', e);
   }
 }
 
@@ -304,7 +348,7 @@ async function switchToARC() {
   try {
     await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:ARC_CHAIN_HEX}] });
   } catch(e) {
-    if (e.code === 4902) {
+    if (e.code === 4902 || e.code === -32603) {
       await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{
         chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
         nativeCurrency: { name:'USDC', symbol:'USDC', decimals:18 },
