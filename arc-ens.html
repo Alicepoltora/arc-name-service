@@ -644,41 +644,45 @@ async function registerName() {
   showTx('pending', '<span class="spinner"></span>Waiting for MetaMask signature...');
 
   try {
-    // Fetch live gas price from network, apply +20% over network avg (min floor 25 gwei)
-    let gasPrice;
-    try {
-      const gpResp = await fetch(RPC_URL, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({jsonrpc:'2.0',method:'eth_gasPrice',params:[],id:1})
-      });
-      const gpData = await gpResp.json();
-      const networkGas = BigInt(gpData.result || '0x0');
-      const floor = ethers.parseUnits('25', 'gwei');
-      // +20% over network price, but never below floor
-      const bumped = networkGas * 120n / 100n;
-      gasPrice = bumped > floor ? bumped : floor;
-    } catch(_) {
-      gasPrice = ethers.parseUnits('26', 'gwei'); // safe fallback
-    }
+    // ── All reads via original RPC (avoids thirdweb rate limiting) ──────────
+    const rpcPost = (method, params) => fetch(RPC_URL, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({jsonrpc:'2.0', method, params, id: Date.now()})
+    }).then(r => r.json());
 
-    const tx = await contract.register(currentName, {
-      type:     0,
-      gasPrice: gasPrice,
-      gasLimit: 300000
+    // Gas price: network value +20%, floor 25 gwei
+    const gpData    = await rpcPost('eth_gasPrice', []);
+    const netGas    = BigInt(gpData.result || '0x0');
+    const floor     = BigInt(25e9);
+    const gasPrice  = '0x' + ((netGas * 120n / 100n > floor ? netGas * 120n / 100n : floor)).toString(16);
+
+    // Encode register(name) calldata
+    const iface    = new ethers.Interface(['function register(string calldata name) external']);
+    const calldata = iface.encodeFunctionData('register', [currentName]);
+
+    // Estimate gas via original RPC
+    const estData  = await rpcPost('eth_estimateGas', [{ from: userAddress, to: CONTRACT_ADDRESS, data: calldata }]);
+    const gasLimit = estData.result ? '0x' + (Math.ceil(parseInt(estData.result, 16) * 1.3)).toString(16) : '0x493E0';
+
+    // Send transaction via MetaMask only (1 call to thirdweb, no polling)
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{ from: userAddress, to: CONTRACT_ADDRESS, data: calldata, gasPrice, gas: gasLimit }]
     });
-    showTx('pending', `<span class="spinner"></span>Transaction sent · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" class="underline font-bold">View on Explorer ↗</a>`);
+
+    showTx('pending', `<span class="spinner"></span>Transaction sent · <a href="${EXPLORER}/tx/${txHash}" target="_blank" class="underline font-bold">View on Explorer ↗</a>`);
     btn.innerHTML = '<span class="spinner"></span>Confirming...';
 
-    // Poll for receipt directly via original RPC (avoids thirdweb relay delays)
-    await waitForReceipt(tx.hash);
+    // Poll for receipt via original RPC
+    await waitForReceipt(txHash);
 
-    showTx('success', `✅ <strong>${currentName}.arc</strong> registered! · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" class="underline font-bold">View TX ↗</a>`);
+    showTx('success', `✅ <strong>${currentName}.arc</strong> registered! · <a href="${EXPLORER}/tx/${txHash}" target="_blank" class="underline font-bold">View TX ↗</a>`);
     setResultState('taken', 'Registered · Owner: you');
     currentAvailable = false;
     document.getElementById('resultAction').innerHTML = `
       <div class="flex items-center gap-4 px-4">
         <span class="text-green-400 font-bold text-sm">🎉 Yours!</span>
-        <a href="${EXPLORER}/tx/${tx.hash}" target="_blank"
+        <a href="${EXPLORER}/tx/${txHash}" target="_blank"
            class="border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-white/5 transition-all">View TX ↗</a>
       </div>`;
     await loadMyNames();
