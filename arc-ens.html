@@ -611,9 +611,11 @@ async function registerName() {
   showTx('pending', '<span class="spinner"></span>Waiting for MetaMask signature...');
 
   try {
+    // ARC Testnet does not support EIP-1559 — use legacy gasPrice
     const tx = await contract.register(currentName, {
-      maxFeePerGas:         ethers.parseUnits('200','gwei'),
-      maxPriorityFeePerGas: ethers.parseUnits('1','gwei')
+      type:     0,
+      gasPrice: ethers.parseUnits('2', 'gwei'),
+      gasLimit: 200000
     });
     showTx('pending', `<span class="spinner"></span>Transaction sent · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" class="underline font-bold">View on Explorer ↗</a>`);
     btn.innerHTML = '<span class="spinner"></span>Confirming...';
