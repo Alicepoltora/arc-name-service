@@ -644,10 +644,22 @@ async function registerName() {
   showTx('pending', '<span class="spinner"></span>Waiting for MetaMask signature...');
 
   try {
-    // ARC Testnet: no EIP-1559, legacy gasPrice required, minimum ~20 gwei
-    const feeData = await provider.getFeeData().catch(() => null);
-    const minGas  = ethers.parseUnits('25', 'gwei');
-    const gasPrice = feeData?.gasPrice && feeData.gasPrice > minGas ? feeData.gasPrice : minGas;
+    // Fetch live gas price from network, apply +20% over network avg (min floor 25 gwei)
+    let gasPrice;
+    try {
+      const gpResp = await fetch(RPC_URL, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({jsonrpc:'2.0',method:'eth_gasPrice',params:[],id:1})
+      });
+      const gpData = await gpResp.json();
+      const networkGas = BigInt(gpData.result || '0x0');
+      const floor = ethers.parseUnits('25', 'gwei');
+      // +20% over network price, but never below floor
+      const bumped = networkGas * 120n / 100n;
+      gasPrice = bumped > floor ? bumped : floor;
+    } catch(_) {
+      gasPrice = ethers.parseUnits('26', 'gwei'); // safe fallback
+    }
 
     const tx = await contract.register(currentName, {
       type:     0,
