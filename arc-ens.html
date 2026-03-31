@@ -255,6 +255,8 @@
 const CONTRACT_ADDRESS = "0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080";
 const ARC_CHAIN_ID     = 5042002;
 const ARC_CHAIN_HEX    = "0x4CCDD2";
+// MetaMask sometimes stores ARC Testnet under a different chain ID with the same RPC
+const ARC_CHAIN_ALT    = [5042002, 0x4d0b12];
 const RPC_URL          = "https://rpc.testnet.arc.network";
 const EXPLORER         = "https://testnet.arcscan.app";
 
@@ -359,7 +361,7 @@ async function checkNetwork() {
   try {
     const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
     const warn = document.getElementById('networkWarning');
-    if (parseInt(chainHex, 16) !== ARC_CHAIN_ID) {
+    if (!ARC_CHAIN_ALT.includes(parseInt(chainHex, 16))) {
       document.getElementById('networkWarningText').textContent = '⚠️ Wrong network. Switch to ARC Testnet (Chain ID: 5042002).';
       document.getElementById('switchNetBtn').textContent = 'Switch Network';
       document.getElementById('switchNetBtn').disabled = false;
@@ -421,21 +423,53 @@ function disconnectWallet() {
 }
 
 async function switchToARC() {
+  // First try switching to our known chain ID
   try {
     await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_CHAIN_HEX }] });
+    return; // success
   } catch(e) {
-    if (e.code === 4902 || e.code === -32603) {
-      await window.ethereum.request({
-        method: 'wallet_addEthereumChain',
-        params: [{
-          chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
-          nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-          rpcUrls: [RPC_URL], blockExplorerUrls: [EXPLORER]
-        }]
-      });
-    } else if (e.code !== 4001) {
-      throw e;
+    if (e.code === 4001) return; // user rejected
+    // chain not found (4902) or internal error (-32603) → try to add
+    if (e.code !== 4902 && e.code !== -32603) throw e;
+  }
+
+  // Try to add the network
+  try {
+    await window.ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [{
+        chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
+        nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+        rpcUrls: [RPC_URL], blockExplorerUrls: [EXPLORER]
+      }]
+    });
+    return; // success
+  } catch(addErr) {
+    if (addErr.code === 4001) return; // user rejected
+
+    // MetaMask already has a network with the same RPC but different chain ID.
+    // Extract that chain ID from the error message and switch to it.
+    const msg = (addErr.message || '').toLowerCase();
+    if (msg.includes('same rpc') || msg.includes('rpc endpoint') || msg.includes('already exists')) {
+      // Try common fallback chain IDs for ARC Testnet
+      const fallbacks = ['0x4d0b12', '0x4CCDD2'];
+      for (const fallbackId of fallbacks) {
+        if (fallbackId === ARC_CHAIN_HEX) continue;
+        try {
+          await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: fallbackId }] });
+          return; // switched to the existing ARC network entry in MetaMask
+        } catch(swErr) {
+          if (swErr.code === 4001) return;
+          // not found, try next
+        }
+      }
+      // If all fallbacks failed, ask user to fix manually
+      throw new Error(
+        'ARC Testnet is already in MetaMask with a different Chain ID.\n\n' +
+        'Fix: MetaMask → Settings → Networks → find "Arc Testnet" → remove it, then click Switch Network again.'
+      );
     }
+    throw addErr;
   }
 }
 
@@ -554,7 +588,7 @@ async function registerName() {
   // Ensure on ARC testnet before sending tx
   try {
     const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
-    if (parseInt(chainHex, 16) !== ARC_CHAIN_ID) {
+    if (!ARC_CHAIN_ALT.includes(parseInt(chainHex, 16))) {
       showTx('pending', '<span class="spinner"></span>Switching to ARC Testnet...');
       await switchToARC();
       await new Promise(r => setTimeout(r, 600));
