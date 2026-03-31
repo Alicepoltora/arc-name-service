@@ -69,10 +69,17 @@
         </div>
         <input id="searchInput" class="bg-surface-container-highest border-none rounded-xl pl-10 pr-4 py-2 w-64 text-sm focus:ring-1 focus:ring-primary-dim transition-all" type="text" placeholder="search name..." onkeydown="if(event.key==='Enter') doSearch()" />
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 relative">
         <button onclick="connectWallet()" id="walletBtn" class="bg-primary-container text-on-primary-container px-4 py-2 rounded-xl text-sm font-bold hover:opacity-90 transition-all active:scale-95">
           Connect Wallet
         </button>
+        <!-- Disconnect dropdown (hidden by default) -->
+        <div id="walletMenu" class="hidden absolute right-0 top-12 bg-zinc-900 border border-white/10 rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden">
+          <div id="walletMenuAddr" class="px-4 py-3 text-xs text-zinc-400 font-mono border-b border-white/5 truncate"></div>
+          <button onclick="disconnectWallet()" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 flex items-center gap-2 transition-colors">
+            <span class="material-symbols-outlined text-base">logout</span> Disconnect
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -117,8 +124,8 @@
 
     <!-- NETWORK WARNING -->
     <div id="networkWarning" class="hidden bg-amber-950/50 border border-amber-800/50 text-amber-400 rounded-xl p-4 flex items-center justify-between">
-      <span class="text-sm">⚠️ Wrong network. Please switch to ARC Testnet (Chain ID: 5042002).</span>
-      <button onclick="switchToARC()" class="bg-amber-400 text-black px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-amber-300 transition-all">Switch Network</button>
+      <span id="networkWarningText" class="text-sm">⚠️ Wrong network. Switch to ARC Testnet (Chain ID: 5042002).</span>
+      <button id="switchNetBtn" onclick="handleSwitchNetwork()" class="bg-amber-400 text-black px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-amber-300 transition-all active:scale-95">Switch Network</button>
     </div>
 
     <!-- HERO SEARCH (shown when nothing searched yet) -->
@@ -291,6 +298,15 @@ async function connectWallet() {
     btn.textContent = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
     btn.classList.remove('bg-primary-container', 'text-on-primary-container');
     btn.classList.add('bg-surface-container-high', 'text-on-surface-variant', 'font-mono', 'text-xs');
+    // Show dropdown on click when connected
+    btn.onclick = () => toggleWalletMenu(userAddress);
+    document.getElementById('walletMenuAddr').textContent = userAddress;
+    // Close menu on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#walletBtn') && !e.target.closest('#walletMenu')) {
+        document.getElementById('walletMenu').classList.add('hidden');
+      }
+    }, { once: false });
 
     // STEP 3: Init ethers provider silently in background
     initProvider();
@@ -304,7 +320,10 @@ async function connectWallet() {
     // STEP 6: Listen for changes
     try { window.ethereum.removeAllListeners('accountsChanged'); } catch(_) {}
     try { window.ethereum.removeAllListeners('chainChanged'); } catch(_) {}
-    window.ethereum.on('accountsChanged', (a) => { if (!a || !a.length) location.reload(); else { userAddress = a[0]; } });
+    window.ethereum.on('accountsChanged', (a) => {
+      if (!a || !a.length) { disconnectWallet(); }
+      else { userAddress = a[0]; document.getElementById('walletMenuAddr').textContent = a[0]; }
+    });
     window.ethereum.on('chainChanged', () => { initProvider(); checkNetwork(); });
 
   } catch(e) {
@@ -319,6 +338,12 @@ async function connectWallet() {
   }
 }
 
+function toggleWalletMenu(addr) {
+  const menu = document.getElementById('walletMenu');
+  document.getElementById('walletMenuAddr').textContent = addr;
+  menu.classList.toggle('hidden');
+}
+
 function initProvider() {
   try {
     provider = new ethers.BrowserProvider(window.ethereum);
@@ -330,16 +355,69 @@ function initProvider() {
 }
 
 async function checkNetwork() {
+  if (!window.ethereum || !userAddress) return;
   try {
     const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
     const warn = document.getElementById('networkWarning');
     if (parseInt(chainHex, 16) !== ARC_CHAIN_ID) {
-      warn.querySelector('span').textContent = '⚠️ Wrong network. Switch to ARC Testnet (Chain ID: 5042002).';
+      document.getElementById('networkWarningText').textContent = '⚠️ Wrong network. Switch to ARC Testnet (Chain ID: 5042002).';
+      document.getElementById('switchNetBtn').textContent = 'Switch Network';
+      document.getElementById('switchNetBtn').disabled = false;
       warn.classList.remove('hidden');
     } else {
       warn.classList.add('hidden');
     }
   } catch(e) {}
+}
+
+async function handleSwitchNetwork() {
+  const btn = document.getElementById('switchNetBtn');
+  const txt = document.getElementById('networkWarningText');
+  btn.disabled = true;
+  btn.textContent = 'Switching...';
+  txt.textContent = '⏳ Switching to ARC Testnet...';
+  try {
+    await switchToARC();
+    // Wait for MetaMask to finalize the switch
+    await new Promise(r => setTimeout(r, 800));
+    initProvider();
+    await checkNetwork();
+    // Re-init contract after network switch
+    if (userAddress) {
+      await new Promise(r => setTimeout(r, 400));
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Switch Network';
+    if (e.code !== 4001) {
+      txt.textContent = '❌ Switch failed: ' + (e.message || String(e));
+    } else {
+      txt.textContent = '⚠️ Wrong network. Switch to ARC Testnet (Chain ID: 5042002).';
+    }
+  }
+}
+
+function disconnectWallet() {
+  // Clear local state (MetaMask manages actual site permissions separately)
+  userAddress = null;
+  provider = null;
+  signer = null;
+  contract = null;
+
+  const btn = document.getElementById('walletBtn');
+  btn.textContent = 'Connect Wallet';
+  btn.disabled = false;
+  btn.onclick = connectWallet;
+  btn.classList.remove('bg-surface-container-high','text-on-surface-variant','font-mono','text-xs');
+  btn.classList.add('bg-primary-container','text-on-primary-container');
+
+  document.getElementById('walletMenu').classList.add('hidden');
+  document.getElementById('networkWarning').classList.add('hidden');
+  document.getElementById('myNamesSidebar').classList.add('hidden');
+  document.getElementById('myNamesPanel').classList.add('hidden');
 }
 
 async function switchToARC() {
