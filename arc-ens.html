@@ -56,8 +56,8 @@
     <div class="flex items-center gap-8">
       <span class="text-2xl font-bold bg-gradient-to-br from-blue-400 to-blue-600 bg-clip-text text-transparent">ANS</span>
       <div class="hidden md:flex gap-6 items-center">
-        <a class="text-blue-400 border-b-2 border-blue-400 pb-1" href="#">Domains</a>
-        <a class="text-zinc-400 hover:text-white transition-colors" href="#">Identity</a>
+        <button id="topNavDomains" onclick="showSection('domains')" class="text-blue-400 border-b-2 border-blue-400 pb-1 transition-colors">Domains</button>
+        <button id="topNavIdentity" onclick="showSection('identity')" class="text-zinc-400 hover:text-white transition-colors">Identity</button>
         <a href="https://testnet.arcscan.app" target="_blank" class="text-zinc-400 hover:text-white transition-colors">Explorer</a>
         <a href="https://faucet.circle.com" target="_blank" class="text-zinc-400 hover:text-white transition-colors">Faucet</a>
       </div>
@@ -76,6 +76,9 @@
         <!-- Disconnect dropdown (hidden by default) -->
         <div id="walletMenu" class="hidden absolute right-0 top-12 bg-zinc-900 border border-white/10 rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden">
           <div id="walletMenuAddr" class="px-4 py-3 text-xs text-zinc-400 font-mono border-b border-white/5 truncate"></div>
+          <button onclick="switchWallet()" class="w-full text-left px-4 py-3 text-sm text-zinc-200 hover:bg-white/5 flex items-center gap-2 transition-colors border-b border-white/5">
+            <span class="material-symbols-outlined text-base">sync_alt</span> Switch Wallet
+          </button>
           <button onclick="disconnectWallet()" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 flex items-center gap-2 transition-colors">
             <span class="material-symbols-outlined text-base">logout</span> Disconnect
           </button>
@@ -91,12 +94,12 @@
   <!-- SIDEBAR -->
   <aside class="hidden lg:flex lg:col-span-2 flex-col gap-8">
     <div class="flex flex-col gap-2">
-      <div class="p-3 bg-blue-500/10 text-blue-400 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1">
+      <button id="sideNavDomains" onclick="showSection('domains')" class="p-3 bg-blue-500/10 text-blue-400 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1 w-full text-left">
         <span class="material-symbols-outlined">language</span><span>Domains</span>
-      </div>
-      <div class="p-3 text-zinc-500 hover:text-zinc-200 hover:bg-white/10 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1">
+      </button>
+      <button id="sideNavIdentity" onclick="showSection('identity')" class="p-3 text-zinc-500 hover:text-zinc-200 hover:bg-white/10 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1 w-full text-left">
         <span class="material-symbols-outlined">fingerprint</span><span>Identity</span>
-      </div>
+      </button>
       <div onclick="window.open('https://testnet.arcscan.app','_blank')" class="p-3 text-zinc-500 hover:text-zinc-200 hover:bg-white/10 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1">
         <span class="material-symbols-outlined">account_balance</span><span>Explorer</span>
       </div>
@@ -121,11 +124,22 @@
 
   <!-- CONTENT -->
   <div class="lg:col-span-10 space-y-8">
+    <div id="domainsSection" class="space-y-8">
 
     <!-- NETWORK WARNING -->
     <div id="networkWarning" class="hidden bg-amber-950/50 border border-amber-800/50 text-amber-400 rounded-xl p-4 flex items-center justify-between">
       <span id="networkWarningText" class="text-sm">⚠️ Wrong network. Switch to ARC Testnet (Chain ID: 5042002).</span>
       <button id="switchNetBtn" onclick="handleSwitchNetwork()" class="bg-amber-400 text-black px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-amber-300 transition-all active:scale-95">Switch Network</button>
+    </div>
+
+    <div class="bg-surface-container-low border border-white/5 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <p class="text-sm font-bold text-white">Recommended wallet: Rabby</p>
+        <p class="text-sm text-on-surface-variant">Rabby is currently more reliable on ARC Testnet. MetaMask may leave transactions pending or use unstable RPC settings.</p>
+      </div>
+      <a href="https://rabby.io" target="_blank" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 text-sm font-bold text-white hover:bg-white/5 transition-all">
+        Install Rabby
+      </a>
     </div>
 
     <!-- HERO SEARCH (shown when nothing searched yet) -->
@@ -163,6 +177,7 @@
                 <span id="resultDot" class="w-2 h-2 rounded-full bg-green-500"></span>
                 <span id="resultStatus" class="text-sm font-label text-on-surface-variant">Available for Registration</span>
               </div>
+              <div id="resultMeta" class="hidden mt-2 flex flex-wrap items-center gap-3 text-xs text-on-surface-variant"></div>
             </div>
           </div>
           <div id="resultAction" class="flex items-center gap-8 px-8 py-4 bg-white/5 rounded-full">
@@ -242,6 +257,136 @@
       </h2>
       <div id="myNamesPanelList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </div>
+    </div>
+
+    <div id="identitySection" class="hidden space-y-8">
+      <section class="bg-surface-container-low border border-white/5 rounded-2xl p-6 md:p-8">
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+          <div class="space-y-3">
+            <p class="text-xs uppercase tracking-[0.28em] text-zinc-500 font-label">Identity</p>
+            <h1 class="text-4xl font-headline font-bold text-white">Wallet Identity</h1>
+            <p class="text-sm text-on-surface-variant max-w-2xl">See every `.arc` name registered by the connected wallet and choose which one should be shown here as your main identity.</p>
+          </div>
+          <div id="identityWalletBadge" class="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+            <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Connected Wallet</p>
+            <p id="identityWalletAddress" class="mt-1 font-mono text-sm text-white"></p>
+          </div>
+        </div>
+      </section>
+
+      <div id="identityConnectState" class="hidden surface-container-low rounded-2xl border border-white/5 p-8 text-center space-y-4">
+        <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+          <span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
+        </div>
+        <div class="space-y-2">
+          <h2 class="text-2xl font-headline font-bold text-white">Connect a wallet to manage identity</h2>
+          <p class="text-sm text-on-surface-variant max-w-md mx-auto">Your Identity page is generated from names owned by the currently connected address.</p>
+        </div>
+        <button onclick="connectWallet()" class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
+          Connect Wallet
+        </button>
+      </div>
+
+      <div id="identityEmptyState" class="hidden surface-container-low rounded-2xl border border-white/5 p-8 text-center space-y-4">
+        <div class="w-14 h-14 rounded-2xl bg-white/5 text-zinc-300 flex items-center justify-center mx-auto">
+          <span class="material-symbols-outlined text-3xl">fingerprint</span>
+        </div>
+        <div class="space-y-2">
+          <h2 class="text-2xl font-headline font-bold text-white">No names registered yet</h2>
+          <p class="text-sm text-on-surface-variant max-w-md mx-auto">This wallet does not own any `.arc` names yet. Register one in Domains and it will appear here automatically.</p>
+        </div>
+        <button onclick="showSection('domains')" class="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/10 text-white font-bold hover:bg-white/5 transition-all">
+          Go to Domains
+        </button>
+      </div>
+
+      <div id="identityContent" class="hidden space-y-6">
+        <section class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div class="lg:col-span-2 surface-container-low rounded-2xl border border-white/5 p-8 tonal-shift">
+            <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Primary Name</p>
+            <div class="mt-5 space-y-4">
+              <div id="identityAvatarFrame" class="w-20 h-20 rounded-3xl bg-primary/10 text-primary flex items-center justify-center overflow-hidden border border-white/10">
+                <img id="identityAvatarImage" alt="Profile avatar" class="hidden w-full h-full object-cover" />
+                <span id="identityAvatarFallback" class="material-symbols-outlined text-4xl" style="font-variation-settings:'FILL' 1;">verified</span>
+              </div>
+              <div>
+                <h2 id="identityPrimaryName" class="text-3xl font-headline font-bold text-white">-</h2>
+                <p id="identityPrimaryMeta" class="mt-2 text-sm text-on-surface-variant">Choose which owned name should be shown as your main identity in this app.</p>
+                <a id="identityTwitterLink" href="#" target="_blank" class="hidden mt-3 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+                  <span class="material-symbols-outlined text-base">alternate_email</span>
+                  <span id="identityTwitterText"></span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-3 surface-container-low rounded-2xl border border-white/5 p-8">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Owned Names</p>
+                <h2 class="mt-2 text-2xl font-headline font-bold text-white">All names for this wallet</h2>
+              </div>
+              <div class="text-right">
+                <p id="identityCount" class="text-4xl font-headline font-bold text-primary/70">0</p>
+                <p class="text-xs text-on-surface-variant">registered names</p>
+              </div>
+            </div>
+            <p class="mt-4 text-sm text-on-surface-variant">Primary selection is currently saved in this app for the connected address. On-chain reverse resolution still follows the registry contract rules.</p>
+          </div>
+        </section>
+
+        <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div class="surface-container-low rounded-2xl border border-white/5 p-8">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Avatar</p>
+                <h2 class="mt-2 text-2xl font-headline font-bold text-white">Primary Domain Avatar</h2>
+              </div>
+              <span class="text-xs text-on-surface-variant">Images only</span>
+            </div>
+            <p class="mt-4 text-sm text-on-surface-variant">Upload or replace the avatar for your current primary `.arc` name. This profile image is stored locally for this wallet in the app.</p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <button onclick="openPrimaryAvatarPicker()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary text-sm font-bold hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
+                Upload Avatar
+              </button>
+              <button onclick="removePrimaryAvatar()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 text-white text-sm font-bold hover:bg-white/5 transition-all">
+                Remove Avatar
+              </button>
+            </div>
+            <input id="identityAvatarInput" type="file" accept="image/*" class="hidden" onchange="handlePrimaryAvatarChange(event)" />
+          </div>
+
+          <div class="surface-container-low rounded-2xl border border-white/5 p-8">
+            <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Social</p>
+            <h2 class="mt-2 text-2xl font-headline font-bold text-white">Twitter / X</h2>
+            <p class="mt-4 text-sm text-on-surface-variant">Link a Twitter handle to the current primary domain profile. Enter only the username, with or without `@`.</p>
+            <div class="mt-6 space-y-4">
+              <label class="block">
+                <span class="text-sm font-label text-on-surface-variant">Twitter handle</span>
+                <div class="mt-2 flex items-center rounded-xl border border-white/10 bg-white/5 px-4">
+                  <span class="text-zinc-500 text-sm">@</span>
+                  <input id="identityTwitterInput" type="text" placeholder="yourhandle" class="w-full bg-transparent border-none focus:ring-0 text-white px-2 py-3 text-sm" />
+                </div>
+              </label>
+              <div class="flex flex-wrap gap-3">
+                <button onclick="saveIdentityProfileForm()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary text-sm font-bold hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
+                  Save Profile
+                </button>
+                <button onclick="clearTwitterHandle()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 text-white text-sm font-bold hover:bg-white/5 transition-all">
+                  Remove Twitter
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div id="identityProfileStatus" class="hidden rounded-xl p-4 text-sm font-label border"></div>
+
+        <section>
+          <div id="identityNamesList" class="grid grid-cols-1 xl:grid-cols-2 gap-4"></div>
+        </section>
+      </div>
+    </div>
 
   </div>
 </main>
@@ -255,8 +400,23 @@
 const CONTRACT_ADDRESS = "0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080";
 const ARC_CHAIN_ID     = 5042002;
 const ARC_CHAIN_HEX    = "0x4cef52";   // correct hex for 5042002
-const RPC_URL          = "https://rpc.testnet.arc.network";
+const RPC_URLS         = [
+  "https://rpc.blockdaemon.testnet.arc.network",
+  "https://rpc.drpc.testnet.arc.network",
+  "https://rpc.quicknode.testnet.arc.network",
+  "https://rpc.testnet.arc.network"
+];
+const RPC_URL          = RPC_URLS[0];
 const EXPLORER         = "https://testnet.arcscan.app";
+const DEPLOY_BLOCK     = "0x21063d3";
+const RECENT_LOOKBACK_BLOCKS = 5000n;
+const RECENT_CACHE_MS  = 15000;
+const COUNT_CACHE_MS   = 60000;
+const SUGGESTION_CACHE_MS = 30000;
+const MIN_GAS_LIMIT = 200000n;
+const PRIMARY_NAME_STORAGE_PREFIX = 'ans-primary-name:';
+const ACTIVE_SECTION_STORAGE_KEY = 'ans-active-section';
+const WALLET_DISCONNECTED_STORAGE_KEY = 'ans-wallet-disconnected';
 
 const ABI = [
   "function register(string calldata name) external",
@@ -271,10 +431,428 @@ const ABI = [
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let provider, signer, contract, readContract, userAddress;
 let currentName = null, currentAvailable = false;
+let currentSection = 'domains';
+let ownedNames = [];
+let currentPrimaryIdentityName = '';
+let currentIdentityProfile = { avatar: '', avatarPathname: '', twitter: '' };
+let pendingTxMonitor = null;
+let walletMenuDismissBound = false;
+const contractInterface = new ethers.Interface(ABI);
+let rpcCursor = 0;
+const cache = {
+  recentLogs: { ts: 0, data: null },
+  totalCount: { ts: 0, data: null },
+  suggestions: new Map()
+};
 
-// Read-only provider (always available, no wallet needed)
-const publicProvider = new ethers.JsonRpcProvider(RPC_URL);
-readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function isRateLimitMessage(message = '') {
+  const text = message.toLowerCase();
+  return text.includes('rate limit') || text.includes('too many requests') || text.includes('request is being rate limited');
+}
+
+async function rpcPost(method, params) {
+  // Prefer the same-origin Vercel proxy to avoid browser-side RPC rate limits.
+  if (location.protocol.startsWith('http')) {
+    try {
+      const proxyResp = await fetch('/api/rpc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ method, params })
+      });
+      const proxyData = await proxyResp.json();
+      if (!proxyResp.ok) throw new Error(proxyData.error || `RPC ${method} failed`);
+      return proxyData.result;
+    } catch (err) {
+      // Fall through to direct RPC failover for local debugging / proxy outages.
+      console.warn('rpc proxy fallback:', err.message || err);
+    }
+  }
+
+  const errors = [];
+  const attempts = RPC_URLS.length * 2;
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const index = (rpcCursor + attempt) % RPC_URLS.length;
+    const rpcUrl = RPC_URLS[index];
+
+    try {
+      const resp = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method, params, id: Date.now() + attempt })
+      });
+
+      if (!resp.ok) {
+        const err = new Error(resp.status === 429
+          ? 'Request is being rate limited.'
+          : `RPC ${method} failed with HTTP ${resp.status}`);
+        err.status = resp.status;
+        throw err;
+      }
+
+      const data = await resp.json();
+      if (data.error) {
+        const err = new Error(data.error.message || `RPC ${method} failed`);
+        err.code = data.error.code;
+        err.data = data.error.data;
+        throw err;
+      }
+
+      rpcCursor = (index + 1) % RPC_URLS.length;
+      return data.result;
+    } catch (err) {
+      errors.push(err);
+      if (attempt < attempts - 1 && (err.status === 429 || isRateLimitMessage(err.message))) {
+        await sleep(250 * (attempt + 1));
+      }
+    }
+  }
+
+  if (errors.some(err => err.status === 429 || isRateLimitMessage(err.message))) {
+    throw new Error('Request is being rate limited. Please retry in a few seconds.');
+  }
+
+  throw errors[errors.length - 1] || new Error(`RPC ${method} failed`);
+}
+
+function hexFromBigInt(value) {
+  return '0x' + value.toString(16);
+}
+
+function getPrimaryNameStorageKey(address) {
+  return PRIMARY_NAME_STORAGE_PREFIX + String(address || '').toLowerCase();
+}
+
+function getSavedPrimaryName(address) {
+  if (!address) return '';
+  try {
+    return localStorage.getItem(getPrimaryNameStorageKey(address)) || '';
+  } catch (_) {
+    return '';
+  }
+}
+
+function savePrimaryName(address, name) {
+  if (!address) return;
+  try {
+    localStorage.setItem(getPrimaryNameStorageKey(address), name);
+  } catch (_) {}
+}
+
+function clearSavedPrimaryName(address) {
+  if (!address) return;
+  try {
+    localStorage.removeItem(getPrimaryNameStorageKey(address));
+  } catch (_) {}
+}
+
+function sanitizeTwitterHandle(value) {
+  const normalized = String(value || '').trim().replace(/^@+/, '');
+  if (!normalized) return '';
+  if (!/^[A-Za-z0-9_]{1,15}$/.test(normalized)) {
+    throw new Error('Twitter handle must be 1-15 characters and use only letters, numbers, or underscores.');
+  }
+  return normalized;
+}
+
+function getSavedSection() {
+  try {
+    return localStorage.getItem(ACTIVE_SECTION_STORAGE_KEY) || 'domains';
+  } catch (_) {
+    return 'domains';
+  }
+}
+
+function saveActiveSection(section) {
+  try {
+    localStorage.setItem(ACTIVE_SECTION_STORAGE_KEY, section);
+  } catch (_) {}
+}
+
+function markWalletSessionDisconnected(value) {
+  try {
+    localStorage.setItem(WALLET_DISCONNECTED_STORAGE_KEY, value ? '1' : '0');
+  } catch (_) {}
+}
+
+function shouldSkipWalletRestore() {
+  try {
+    return localStorage.getItem(WALLET_DISCONNECTED_STORAGE_KEY) === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
+function normalizeIdentityAddress(address) {
+  return String(address || '').trim().toLowerCase();
+}
+
+function normalizeIdentityName(name) {
+  return String(name || '').trim().toLowerCase().replace(/\.arc$/i, '');
+}
+
+function buildIdentityProofMessage({ action, address, name, timestamp, avatarUrl = '', avatarPathname = '', twitter = '' }) {
+  return [
+    'ANS Identity Proof',
+    `Action: ${String(action || '').trim()}`,
+    `Wallet: ${normalizeIdentityAddress(address)}`,
+    `Name: ${normalizeIdentityName(name)}.arc`,
+    `Timestamp: ${String(timestamp || '').trim()}`,
+    `Avatar URL: ${String(avatarUrl || '').trim() || '-'}`,
+    `Avatar Path: ${String(avatarPathname || '').trim() || '-'}`,
+    `Twitter: ${String(twitter || '').trim() || '-'}`
+  ].join('\n');
+}
+
+function getAvatarUploadPath(address, name, fileName) {
+  const normalizedName = normalizeIdentityName(name);
+  const normalizedAddress = normalizeIdentityAddress(address);
+  const extension = String(fileName || '').split('.').pop()?.toLowerCase() || 'png';
+  const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension) ? extension : 'png';
+  return `avatars/${normalizedAddress}/${normalizedName}/avatar.${safeExt}`;
+}
+
+async function ensureWalletSigner() {
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
+  return signer;
+}
+
+async function signIdentityProof(payload) {
+  const activeSigner = await ensureWalletSigner();
+  const message = buildIdentityProofMessage(payload);
+  return await activeSigner.signMessage(message);
+}
+
+async function fetchRemoteIdentityProfile(address, name) {
+  const query = new URLSearchParams({
+    address: normalizeIdentityAddress(address),
+    name: normalizeIdentityName(name)
+  });
+  const response = await fetch(`/api/profile?${query.toString()}`, { cache: 'no-store' });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not load profile');
+  }
+  return {
+    avatar: data.avatar || '',
+    avatarPathname: data.avatarPathname || '',
+    twitter: data.twitter || ''
+  };
+}
+
+async function saveRemoteIdentityProfile(name, profile) {
+  const payload = {
+    action: 'update-profile',
+    address: userAddress,
+    name,
+    avatarUrl: profile.avatar || '',
+    avatarPathname: profile.avatarPathname || '',
+    twitter: sanitizeTwitterHandle(profile.twitter || ''),
+    timestamp: String(Date.now())
+  };
+  const signature = await signIdentityProof(payload);
+  const response = await fetch('/api/profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, signature })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not save profile');
+  }
+  return {
+    avatar: data.avatar || '',
+    avatarPathname: data.avatarPathname || '',
+    twitter: data.twitter || ''
+  };
+}
+
+async function callRead(method, args) {
+  const data = contractInterface.encodeFunctionData(method, args);
+  const result = await rpcPost('eth_call', [{ to: CONTRACT_ADDRESS, data }, 'latest']);
+  const decoded = contractInterface.decodeFunctionResult(method, result);
+  return decoded.length === 1 ? decoded[0] : decoded;
+}
+
+async function isNameAvailable(name) {
+  return Boolean(await callRead('isAvailable', [name]));
+}
+
+async function resolveName(name) {
+  return await callRead('resolve', [name]);
+}
+
+async function getNamesByOwner(owner) {
+  return await callRead('getNames', [owner]);
+}
+
+async function getReverseNameByOwner(owner) {
+  return await callRead('reverseResolve', [owner]);
+}
+
+async function getRecentRegistrationLogs(force = false) {
+  const now = Date.now();
+  if (!force && cache.recentLogs.data && (now - cache.recentLogs.ts) < RECENT_CACHE_MS) {
+    return cache.recentLogs.data;
+  }
+
+  const latestHex = await rpcPost('eth_blockNumber', []);
+  const latest = BigInt(latestHex);
+  const deployBlock = BigInt(DEPLOY_BLOCK);
+  const fromBlock = latest > (deployBlock + RECENT_LOOKBACK_BLOCKS)
+    ? latest - RECENT_LOOKBACK_BLOCKS
+    : deployBlock;
+  const logs = await rpcPost('eth_getLogs', [{
+    address: CONTRACT_ADDRESS,
+    topics: [ethers.id("NameRegistered(string,address,uint256)")],
+    fromBlock: hexFromBigInt(fromBlock),
+    toBlock: 'latest'
+  }]);
+
+  cache.recentLogs = { ts: now, data: logs };
+  return logs;
+}
+
+async function getTotalRegistrationCount(force = false) {
+  const now = Date.now();
+  if (!force && cache.totalCount.data !== null && (now - cache.totalCount.ts) < COUNT_CACHE_MS) {
+    return cache.totalCount.data;
+  }
+
+  const logs = await rpcPost('eth_getLogs', [{
+    address: CONTRACT_ADDRESS,
+    topics: [ethers.id("NameRegistered(string,address,uint256)")],
+    fromBlock: DEPLOY_BLOCK,
+    toBlock: 'latest'
+  }]);
+
+  cache.totalCount = { ts: now, data: logs.length };
+  return logs.length;
+}
+
+async function getWalletContractCode() {
+  if (!window.ethereum) return '0x';
+  return await window.ethereum.request({
+    method: 'eth_getCode',
+    params: [CONTRACT_ADDRESS, 'latest']
+  });
+}
+
+async function walletRpc(method, params) {
+  if (!window.ethereum) throw new Error('Wallet RPC is unavailable');
+  try {
+    return await window.ethereum.request({ method, params });
+  } catch (err) {
+    if (isRateLimitMessage(err?.message || '') || err?.code === -32005 || err?.status === 429) {
+      err.isRateLimited = true;
+    }
+    throw err;
+  }
+}
+
+async function repairWalletRpcConfig() {
+  if (!window.ethereum) return;
+  await window.ethereum.request({
+    method: 'wallet_addEthereumChain',
+    params: [{
+      chainId: ARC_CHAIN_HEX,
+      chainName: 'ARC Testnet',
+      nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+      rpcUrls: RPC_URLS,
+      blockExplorerUrls: [EXPLORER]
+    }]
+  });
+}
+
+async function sendRegisterTransaction(name, gasLimit) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+      return await contract.register(name, { gasLimit });
+    } catch (err) {
+      lastError = err;
+      const msg = err?.shortMessage || err?.message || '';
+      if (attempt === 0 && (err?.isRateLimited || isRateLimitMessage(msg))) {
+        await repairWalletRpcConfig();
+        await sleep(1500);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw lastError || new Error('Failed to send register transaction');
+}
+
+function ensureWalletMenuDismissHandler() {
+  if (walletMenuDismissBound) return;
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#walletBtn') && !e.target.closest('#walletMenu')) {
+      document.getElementById('walletMenu').classList.add('hidden');
+    }
+  });
+  walletMenuDismissBound = true;
+}
+
+function setupWalletListeners() {
+  if (!window.ethereum) return;
+  try { window.ethereum.removeAllListeners('accountsChanged'); } catch(_) {}
+  try { window.ethereum.removeAllListeners('chainChanged'); } catch(_) {}
+
+  window.ethereum.on('accountsChanged', (a) => {
+    if (!a || !a.length) {
+      disconnectWallet();
+      return;
+    }
+
+    applyConnectedWalletState(a[0]);
+  });
+
+  window.ethereum.on('chainChanged', () => { initProvider(); checkNetwork(); });
+}
+
+function applyConnectedWalletState(address) {
+  userAddress = address;
+  markWalletSessionDisconnected(false);
+
+  const btn = document.getElementById('walletBtn');
+  btn.disabled = false;
+  btn.textContent = address.slice(0,6) + '...' + address.slice(-4);
+  btn.classList.remove('bg-primary-container', 'text-on-primary-container');
+  btn.classList.add('bg-surface-container-high', 'text-on-surface-variant', 'font-mono', 'text-xs');
+  btn.onclick = () => toggleWalletMenu(address);
+
+  document.getElementById('walletMenuAddr').textContent = address;
+  ensureWalletMenuDismissHandler();
+
+  initProvider();
+  checkNetwork();
+  ownedNames = [];
+  loadMyNames();
+  syncResultRegisterButton();
+  if (currentSection === 'identity') loadIdentityView();
+  setupWalletListeners();
+}
+
+async function restoreWalletSession() {
+  if (!window.ethereum || shouldSkipWalletRestore()) return;
+
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    if (accounts && accounts.length) {
+      applyConnectedWalletState(accounts[0]);
+    }
+  } catch (_) {}
+}
 
 // ─── WALLET ──────────────────────────────────────────────────────────────────
 async function connectWallet() {
@@ -288,43 +866,23 @@ async function connectWallet() {
   btn.disabled = true;
 
   try {
-    // STEP 1: Get accounts — this is the ONLY thing that can show a MetaMask popup here
+    // STEP 1: Ask MetaMask for eth_accounts permission so the user can choose the account.
+    try {
+      await window.ethereum.request({
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }]
+      });
+    } catch (permErr) {
+      // Some wallets only support eth_requestAccounts. Fall back gracefully.
+      if (permErr.code !== 4001 && permErr.code !== -32601) throw permErr;
+      if (permErr.code === 4001) throw permErr;
+    }
+
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     if (!accounts || !accounts.length) throw new Error('No accounts returned');
 
-    // STEP 2: Update button IMMEDIATELY with address — no network check, no ethers.js
-    userAddress = accounts[0];
-    btn.disabled = false;
-    btn.textContent = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
-    btn.classList.remove('bg-primary-container', 'text-on-primary-container');
-    btn.classList.add('bg-surface-container-high', 'text-on-surface-variant', 'font-mono', 'text-xs');
-    // Show dropdown on click when connected
-    btn.onclick = () => toggleWalletMenu(userAddress);
-    document.getElementById('walletMenuAddr').textContent = userAddress;
-    // Close menu on outside click
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('#walletBtn') && !e.target.closest('#walletMenu')) {
-        document.getElementById('walletMenu').classList.add('hidden');
-      }
-    }, { once: false });
-
-    // STEP 3: Init ethers provider silently in background
-    initProvider();
-
-    // STEP 4: Check network and show banner if wrong (don't block UI)
-    checkNetwork();
-
-    // STEP 5: Load names
-    loadMyNames();
-
-    // STEP 6: Listen for changes
-    try { window.ethereum.removeAllListeners('accountsChanged'); } catch(_) {}
-    try { window.ethereum.removeAllListeners('chainChanged'); } catch(_) {}
-    window.ethereum.on('accountsChanged', (a) => {
-      if (!a || !a.length) { disconnectWallet(); }
-      else { userAddress = a[0]; document.getElementById('walletMenuAddr').textContent = a[0]; }
-    });
-    window.ethereum.on('chainChanged', () => { initProvider(); checkNetwork(); });
+    // STEP 2: Restore connected wallet state in the UI and background services.
+    applyConnectedWalletState(accounts[0]);
 
   } catch(e) {
     btn.disabled = false;
@@ -336,6 +894,11 @@ async function connectWallet() {
       warn.classList.remove('hidden');
     }
   }
+}
+
+async function switchWallet() {
+  document.getElementById('walletMenu').classList.add('hidden');
+  await connectWallet();
 }
 
 function toggleWalletMenu(addr) {
@@ -365,7 +928,16 @@ async function checkNetwork() {
       document.getElementById('switchNetBtn').disabled = false;
       warn.classList.remove('hidden');
     } else {
-      warn.classList.add('hidden');
+      const walletCode = await getWalletContractCode();
+      if (!walletCode || walletCode === '0x') {
+        document.getElementById('networkWarningText').textContent =
+          '⚠️ This wallet cannot see the ARC registry contract on its current RPC. Rabby works more reliably on ARC Testnet; for MetaMask, remove ARC Testnet and add it again.';
+        document.getElementById('switchNetBtn').textContent = 'Repair Network';
+        document.getElementById('switchNetBtn').disabled = false;
+        warn.classList.remove('hidden');
+      } else {
+        warn.classList.add('hidden');
+      }
     }
   } catch(e) {}
 }
@@ -402,7 +974,9 @@ async function handleSwitchNetwork() {
 
 function disconnectWallet() {
   // Clear local state (MetaMask manages actual site permissions separately)
+  markWalletSessionDisconnected(true);
   userAddress = null;
+  ownedNames = [];
   provider = null;
   signer = null;
   contract = null;
@@ -418,11 +992,11 @@ function disconnectWallet() {
   document.getElementById('networkWarning').classList.add('hidden');
   document.getElementById('myNamesSidebar').classList.add('hidden');
   document.getElementById('myNamesPanel').classList.add('hidden');
+  syncResultRegisterButton();
+  if (currentSection === 'identity') loadIdentityView();
 }
 
 async function switchToARC() {
-  const THIRDWEB_RPC = 'https://arc-testnet.rpc.thirdweb.com'; // same chain, different domain
-
   // Step 1: chain already in MetaMask — just switch
   try {
     await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_CHAIN_HEX }] });
@@ -432,14 +1006,14 @@ async function switchToARC() {
     if (e.code !== 4902 && e.code !== -32603) throw e;
   }
 
-  // Step 2: try to add using thirdweb RPC (different domain — no conflict with existing networks)
+  // Step 2: add the network using official Arc RPC endpoints
   try {
     await window.ethereum.request({
       method: 'wallet_addEthereumChain',
       params: [{
         chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
         nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-        rpcUrls: [THIRDWEB_RPC], blockExplorerUrls: [EXPLORER]
+        rpcUrls: RPC_URLS, blockExplorerUrls: [EXPLORER]
       }]
     });
     return;
@@ -447,22 +1021,7 @@ async function switchToARC() {
     if (e2.code === 4001) return;
   }
 
-  // Step 3: try original RPC as fallback
-  try {
-    await window.ethereum.request({
-      method: 'wallet_addEthereumChain',
-      params: [{
-        chainId: ARC_CHAIN_HEX, chainName: 'ARC Testnet',
-        nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-        rpcUrls: [RPC_URL], blockExplorerUrls: [EXPLORER]
-      }]
-    });
-    return;
-  } catch(e3) {
-    if (e3.code === 4001) return;
-  }
-
-  // Step 4: nothing worked — show manual instructions
+  // Step 3: nothing worked — show manual instructions
   throw new Error(
     'Не удалось добавить сеть автоматически.\n\n' +
     'Исправьте вручную в MetaMask:\n' +
@@ -472,21 +1031,383 @@ async function switchToARC() {
   );
 }
 
+function setNavState(section) {
+  const isDomains = section === 'domains';
+  document.getElementById('topNavDomains').className = isDomains
+    ? 'text-blue-400 border-b-2 border-blue-400 pb-1 transition-colors'
+    : 'text-zinc-400 hover:text-white transition-colors';
+  document.getElementById('topNavIdentity').className = !isDomains
+    ? 'text-blue-400 border-b-2 border-blue-400 pb-1 transition-colors'
+    : 'text-zinc-400 hover:text-white transition-colors';
+
+  document.getElementById('sideNavDomains').className = isDomains
+    ? 'p-3 bg-blue-500/10 text-blue-400 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1 w-full text-left'
+    : 'p-3 text-zinc-500 hover:text-zinc-200 hover:bg-white/10 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1 w-full text-left';
+  document.getElementById('sideNavIdentity').className = !isDomains
+    ? 'p-3 bg-blue-500/10 text-blue-400 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1 w-full text-left'
+    : 'p-3 text-zinc-500 hover:text-zinc-200 hover:bg-white/10 rounded-lg flex items-center gap-3 font-medium cursor-pointer transition-transform hover:translate-x-1 w-full text-left';
+}
+
+function showSection(section) {
+  currentSection = section;
+  saveActiveSection(section);
+  const showDomains = section === 'domains';
+  document.getElementById('domainsSection').classList.toggle('hidden', !showDomains);
+  document.getElementById('identitySection').classList.toggle('hidden', showDomains);
+  setNavState(section);
+
+  if (!showDomains) {
+    loadIdentityView();
+  }
+}
+
+async function getEffectivePrimaryName(address, names) {
+  const saved = getSavedPrimaryName(address);
+  if (saved && names.includes(saved)) return saved;
+
+  try {
+    const reverseName = await getReverseNameByOwner(address);
+    if (reverseName && names.includes(reverseName)) return reverseName;
+  } catch (_) {}
+
+  if (saved && !names.includes(saved)) {
+    clearSavedPrimaryName(address);
+  }
+
+  return names[0] || '';
+}
+
+function showIdentityProfileStatus(type, text) {
+  const el = document.getElementById('identityProfileStatus');
+  el.classList.remove('hidden');
+  el.textContent = text;
+  el.className = 'rounded-xl p-4 text-sm font-label border ';
+  if (type === 'success') el.className += 'bg-green-950/50 border-green-800/50 text-green-400';
+  if (type === 'fail') el.className += 'bg-red-950/50 border-red-800/50 text-red-400';
+  if (type === 'info') el.className += 'bg-surface-container border-white/10 text-on-surface-variant';
+}
+
+function hideIdentityProfileStatus() {
+  const el = document.getElementById('identityProfileStatus');
+  el.classList.add('hidden');
+  el.textContent = '';
+}
+
+function renderIdentityProfilePreview(name, profile) {
+  currentPrimaryIdentityName = name || '';
+  currentIdentityProfile = {
+    avatar: profile?.avatar || '',
+    avatarPathname: profile?.avatarPathname || '',
+    twitter: profile?.twitter || ''
+  };
+
+  const avatarImage = document.getElementById('identityAvatarImage');
+  const avatarFallback = document.getElementById('identityAvatarFallback');
+  const twitterLink = document.getElementById('identityTwitterLink');
+  const twitterText = document.getElementById('identityTwitterText');
+  const twitterInput = document.getElementById('identityTwitterInput');
+
+  if (profile.avatar) {
+    avatarImage.src = profile.avatar;
+    avatarImage.classList.remove('hidden');
+    avatarFallback.classList.add('hidden');
+  } else {
+    avatarImage.removeAttribute('src');
+    avatarImage.classList.add('hidden');
+    avatarFallback.classList.remove('hidden');
+  }
+
+  if (profile.twitter) {
+    twitterLink.href = `https://x.com/${profile.twitter}`;
+    twitterText.textContent = '@' + profile.twitter;
+    twitterLink.classList.remove('hidden');
+  } else {
+    twitterLink.classList.add('hidden');
+    twitterLink.removeAttribute('href');
+    twitterText.textContent = '';
+  }
+
+  twitterInput.value = profile.twitter || '';
+}
+
+function getCurrentIdentityProfile() {
+  if (!userAddress || !currentPrimaryIdentityName) return { avatar: '', avatarPathname: '', twitter: '' };
+  return { ...currentIdentityProfile };
+}
+
+function saveCurrentIdentityProfile(profile) {
+  currentIdentityProfile = {
+    avatar: profile?.avatar || '',
+    avatarPathname: profile?.avatarPathname || '',
+    twitter: profile?.twitter || ''
+  };
+}
+
+function openPrimaryAvatarPicker() {
+  if (!userAddress || !currentPrimaryIdentityName) return;
+  document.getElementById('identityAvatarInput').click();
+}
+
+async function handlePrimaryAvatarChange(event) {
+  const input = event.target;
+  const file = input.files && input.files[0];
+  if (!file || !userAddress || !currentPrimaryIdentityName) {
+    input.value = '';
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    showIdentityProfileStatus('fail', 'Only image files can be used as an avatar.');
+    input.value = '';
+    return;
+  }
+
+  if (file.size > 1024 * 1024) {
+    showIdentityProfileStatus('fail', 'Avatar image is too large. Please use an image up to 1 MB.');
+    input.value = '';
+    return;
+  }
+
+  try {
+    showIdentityProfileStatus('info', `Uploading avatar for ${currentPrimaryIdentityName}.arc...`);
+    const timestamp = String(Date.now());
+    const signature = await signIdentityProof({
+      action: 'upload-avatar',
+      address: userAddress,
+      name: currentPrimaryIdentityName,
+      timestamp
+    });
+    const uploadPath = getAvatarUploadPath(userAddress, currentPrimaryIdentityName, file.name);
+    const { upload } = await import('https://esm.sh/@vercel/blob/client');
+    const blob = await upload(uploadPath, file, {
+      access: 'public',
+      handleUploadUrl: '/api/blob-upload',
+      clientPayload: JSON.stringify({
+        address: userAddress,
+        name: currentPrimaryIdentityName,
+        timestamp,
+        signature
+      })
+    });
+
+    const profile = getCurrentIdentityProfile();
+    profile.avatar = blob.url;
+    profile.avatarPathname = blob.pathname;
+    const saved = await saveRemoteIdentityProfile(currentPrimaryIdentityName, profile);
+    saveCurrentIdentityProfile(saved);
+    renderIdentityProfilePreview(currentPrimaryIdentityName, saved);
+    showIdentityProfileStatus('success', `Avatar updated for ${currentPrimaryIdentityName}.arc.`);
+  } catch (error) {
+    showIdentityProfileStatus('fail', error.message || 'Could not upload avatar.');
+  } finally {
+    input.value = '';
+  }
+}
+
+async function removePrimaryAvatar() {
+  if (!userAddress || !currentPrimaryIdentityName) return;
+  try {
+    const profile = getCurrentIdentityProfile();
+    profile.avatar = '';
+    profile.avatarPathname = '';
+    const saved = await saveRemoteIdentityProfile(currentPrimaryIdentityName, profile);
+    saveCurrentIdentityProfile(saved);
+    renderIdentityProfilePreview(currentPrimaryIdentityName, saved);
+    showIdentityProfileStatus('success', `Avatar removed for ${currentPrimaryIdentityName}.arc.`);
+  } catch (error) {
+    showIdentityProfileStatus('fail', error.message || 'Could not remove avatar.');
+  }
+}
+
+async function saveIdentityProfileForm() {
+  if (!userAddress || !currentPrimaryIdentityName) return;
+
+  try {
+    const profile = getCurrentIdentityProfile();
+    const handle = sanitizeTwitterHandle(document.getElementById('identityTwitterInput').value);
+    profile.twitter = handle;
+    const saved = await saveRemoteIdentityProfile(currentPrimaryIdentityName, profile);
+    saveCurrentIdentityProfile(saved);
+    renderIdentityProfilePreview(currentPrimaryIdentityName, saved);
+    showIdentityProfileStatus('success', handle
+      ? `Twitter linked to ${currentPrimaryIdentityName}.arc.`
+      : `Twitter removed from ${currentPrimaryIdentityName}.arc.`);
+  } catch (err) {
+    showIdentityProfileStatus('fail', err.message || 'Could not save Twitter handle.');
+  }
+}
+
+async function clearTwitterHandle() {
+  if (!userAddress || !currentPrimaryIdentityName) return;
+  try {
+    const profile = getCurrentIdentityProfile();
+    profile.twitter = '';
+    const saved = await saveRemoteIdentityProfile(currentPrimaryIdentityName, profile);
+    saveCurrentIdentityProfile(saved);
+    renderIdentityProfilePreview(currentPrimaryIdentityName, saved);
+    showIdentityProfileStatus('success', `Twitter removed from ${currentPrimaryIdentityName}.arc.`);
+  } catch (error) {
+    showIdentityProfileStatus('fail', error.message || 'Could not remove Twitter handle.');
+  }
+}
+
+async function loadIdentityView() {
+  const connectState = document.getElementById('identityConnectState');
+  const emptyState = document.getElementById('identityEmptyState');
+  const content = document.getElementById('identityContent');
+  const walletBadge = document.getElementById('identityWalletBadge');
+  const walletAddress = document.getElementById('identityWalletAddress');
+  const primaryNameEl = document.getElementById('identityPrimaryName');
+  const primaryMetaEl = document.getElementById('identityPrimaryMeta');
+  const countEl = document.getElementById('identityCount');
+  const listEl = document.getElementById('identityNamesList');
+
+  connectState.classList.add('hidden');
+  emptyState.classList.add('hidden');
+  content.classList.add('hidden');
+  walletBadge.classList.add('hidden');
+  hideIdentityProfileStatus();
+  renderIdentityProfilePreview('', { avatar: '', twitter: '' });
+
+  if (!userAddress) {
+    currentPrimaryIdentityName = '';
+    connectState.classList.remove('hidden');
+    return;
+  }
+
+  walletBadge.classList.remove('hidden');
+  walletAddress.textContent = userAddress;
+
+  let names = ownedNames;
+  if (!names.length) {
+    try {
+      names = await getNamesByOwner(userAddress);
+      ownedNames = names;
+    } catch (_) {
+      names = [];
+    }
+  }
+
+  if (!names.length) {
+    currentPrimaryIdentityName = '';
+    emptyState.classList.remove('hidden');
+    return;
+  }
+
+  const primaryName = await getEffectivePrimaryName(userAddress, names);
+  const profile = await fetchRemoteIdentityProfile(userAddress, primaryName).catch(() => ({
+    avatar: '',
+    avatarPathname: '',
+    twitter: ''
+  }));
+  content.classList.remove('hidden');
+  countEl.textContent = String(names.length);
+  primaryNameEl.textContent = primaryName ? `${primaryName}.arc` : 'No primary selected';
+  primaryMetaEl.textContent = primaryName
+    ? `Current primary name for this wallet in the app: ${primaryName}.arc`
+    : 'Choose which owned name should be shown as your main identity in this app.';
+  renderIdentityProfilePreview(primaryName, profile);
+
+  listEl.innerHTML = names.map((name) => {
+    const isPrimary = name === primaryName;
+    return `
+      <div class="surface-container-low rounded-2xl border ${isPrimary ? 'border-primary/40' : 'border-white/5'} p-5 flex flex-col gap-4">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-xl font-headline font-bold text-white">${name}.arc</h3>
+              ${isPrimary ? '<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-primary/15 text-primary">Primary</span>' : ''}
+            </div>
+            <p class="mt-2 text-sm text-on-surface-variant">${isPrimary ? 'Used as the main identity for this connected wallet in the app.' : 'Available to set as the main identity for this connected wallet.'}</p>
+          </div>
+          <a href="${EXPLORER}/address/${userAddress}" target="_blank" class="text-xs font-mono text-zinc-400 hover:text-primary transition-colors">${userAddress.slice(0, 8)}...${userAddress.slice(-6)}</a>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="setPrimaryName('${name}')" class="${isPrimary ? 'bg-primary/15 text-primary border-primary/20' : 'border-white/10 text-white hover:bg-white/5'} inline-flex items-center justify-center px-4 py-2 rounded-xl border text-sm font-bold transition-all">
+            ${isPrimary ? 'Primary Selected' : 'Set as Primary'}
+          </button>
+          <button onclick="useIdentityName('${name}')" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 text-white text-sm font-bold hover:bg-white/5 transition-all">
+            Open in Domains
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function setPrimaryName(name) {
+  if (!userAddress) return;
+  savePrimaryName(userAddress, name);
+  await loadIdentityView();
+}
+
+function useIdentityName(name) {
+  document.getElementById('searchInput').value = name;
+  document.getElementById('heroInput').value = name;
+  showSection('domains');
+  performSearch(name);
+}
+
 // ─── SEARCH ──────────────────────────────────────────────────────────────────
 function doSearchHero() {
   const val = document.getElementById('heroInput').value.trim().toLowerCase();
   if (!val) return;
   document.getElementById('searchInput').value = val;
+  showSection('domains');
   performSearch(val);
 }
 function doSearch() {
   const val = document.getElementById('searchInput').value.trim().toLowerCase();
   if (!val) return;
   document.getElementById('heroInput').value = val;
+  showSection('domains');
   performSearch(val);
 }
 
+function renderDefaultResultAction() {
+  document.getElementById('resultAction').innerHTML = `
+    <div class="text-center md:text-right">
+      <p class="text-xs text-on-surface-variant font-label uppercase tracking-widest">Gas cost</p>
+      <p class="text-xl font-headline font-bold text-white">~$0.01<span class="text-sm font-normal text-on-surface-variant"> USDC</span></p>
+    </div>
+    <div class="w-px h-8 bg-white/10"></div>
+    <button id="registerBtn" onclick="registerName()"
+      class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
+      Register Now
+    </button>`;
+}
+
+function syncResultRegisterButton() {
+  const btn = document.getElementById('registerBtn');
+  if (!btn || !currentName || !currentAvailable) return;
+
+  btn.disabled = false;
+  if (!userAddress) {
+    btn.textContent = 'Connect Wallet';
+    btn.onclick = connectWallet;
+    return;
+  }
+
+  btn.textContent = 'Register Now';
+  btn.onclick = registerName;
+}
+
+function startNewSearch() {
+  clearPendingMonitor();
+  currentName = null;
+  currentAvailable = false;
+  showSection('domains');
+  document.getElementById('heroInput').value = '';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('txStatus').classList.add('hidden');
+  document.getElementById('resultsSection').classList.add('hidden');
+  document.getElementById('heroSection').classList.remove('hidden');
+  renderDefaultResultAction();
+  loadMyNames();
+  document.getElementById('heroInput').focus();
+}
+
 async function performSearch(name) {
+  showSection('domains');
   // Show results section, hide hero
   document.getElementById('heroSection').classList.add('hidden');
   document.getElementById('resultsSection').classList.remove('hidden');
@@ -504,6 +1425,7 @@ async function performSearch(name) {
     return;
   }
   document.getElementById('resultAction').classList.remove('hidden');
+  renderDefaultResultAction();
 
   // Loading state
   setResultState('loading', 'Checking availability...');
@@ -511,26 +1433,29 @@ async function performSearch(name) {
   document.getElementById('registerBtn').textContent = 'Loading...';
 
   try {
-    const available = await readContract.isAvailable(name);
+    const available = await isNameAvailable(name);
     currentName = name;
     currentAvailable = available;
 
     if (available) {
       setResultState('available', 'Available for Registration');
-      document.getElementById('registerBtn').disabled = false;
-      document.getElementById('registerBtn').textContent = 'Register Now';
-      if (!userAddress) {
-        document.getElementById('registerBtn').textContent = 'Connect Wallet';
-        document.getElementById('registerBtn').onclick = connectWallet;
-      } else {
-        document.getElementById('registerBtn').onclick = registerName;
-      }
+      syncResultRegisterButton();
     } else {
-      const owner = await readContract.resolve(name);
+      const owner = await resolveName(name);
       const short  = owner.slice(0,8) + '...' + owner.slice(-6);
+      const profile = await fetchRemoteIdentityProfile(owner, name).catch(() => ({
+        avatar: '',
+        avatarPathname: '',
+        twitter: ''
+      }));
       setResultState('taken', `Taken · Owner: ${short}`);
+      renderTakenDomainProfile(owner, name, profile);
       document.getElementById('resultAction').innerHTML = `
-        <div class="flex items-center gap-4 px-4">
+        <div class="flex items-center gap-3 px-4 flex-wrap justify-end">
+          <button onclick="startNewSearch()"
+             class="border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-white/5 transition-all">New Search</button>
+          ${profile.twitter ? `<a href="https://x.com/${profile.twitter}" target="_blank"
+             class="border border-primary/20 text-primary rounded-full px-5 py-2 text-sm font-bold hover:bg-primary/10 transition-all">@${profile.twitter}</a>` : ''}
           <a href="${EXPLORER}/address/${owner}" target="_blank"
              class="text-sm font-mono text-zinc-400 hover:text-primary transition-colors">${short}</a>
           <a href="${EXPLORER}/address/${CONTRACT_ADDRESS}" target="_blank"
@@ -540,10 +1465,10 @@ async function performSearch(name) {
 
     loadSuggestions(name);
     loadRecentNames();
-    loadRecentCount();
 
   } catch(e) {
-    setResultState('error', 'RPC error: ' + (e.message || 'unknown'));
+    const msg = e.message || 'unknown';
+    setResultState('error', isRateLimitMessage(msg) ? msg : ('RPC error: ' + msg));
     document.getElementById('registerBtn').textContent = 'Error';
   }
 }
@@ -552,7 +1477,10 @@ function setResultState(state, text) {
   const dot    = document.getElementById('resultDot');
   const status = document.getElementById('resultStatus');
   const icon   = document.getElementById('resultIcon');
+  const meta   = document.getElementById('resultMeta');
   status.textContent = text;
+  meta.classList.add('hidden');
+  meta.innerHTML = '';
   dot.className   = 'w-2 h-2 rounded-full ';
   icon.className  = 'w-12 h-12 rounded-full flex items-center justify-center ';
   if (state === 'available') {
@@ -574,26 +1502,149 @@ function setResultState(state, text) {
   }
 }
 
+function renderTakenDomainProfile(owner, name, profile) {
+  const icon = document.getElementById('resultIcon');
+  const meta = document.getElementById('resultMeta');
+  const shortOwner = owner.slice(0, 8) + '...' + owner.slice(-6);
+  const metaParts = [
+    `<a href="${EXPLORER}/address/${owner}" target="_blank" class="inline-flex items-center gap-1 hover:text-primary transition-colors font-mono"><span class="material-symbols-outlined text-sm">person</span>${shortOwner}</a>`
+  ];
+
+  if (profile?.twitter) {
+    metaParts.unshift(
+      `<a href="https://x.com/${profile.twitter}" target="_blank" class="inline-flex items-center gap-1 text-primary hover:underline"><span class="material-symbols-outlined text-sm">alternate_email</span>@${profile.twitter}</a>`
+    );
+  }
+
+  meta.innerHTML = metaParts.join('');
+  meta.classList.remove('hidden');
+
+  if (profile?.avatar) {
+    icon.className = 'w-12 h-12 rounded-full overflow-hidden border border-white/10 bg-white/5';
+    icon.innerHTML = `<img src="${profile.avatar}" alt="${name}.arc avatar" class="w-full h-full object-cover" />`;
+  }
+}
+
 // Poll for tx receipt directly via JSON-RPC (bypasses provider relay delays)
 async function waitForReceipt(txHash, timeoutMs = 60000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
-      const resp = await fetch(RPC_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getTransactionReceipt', params: [txHash], id: 1 })
-      });
-      const data = await resp.json();
-      if (data.result && data.result.blockNumber) {
-        if (data.result.status === '0x0') throw new Error('Transaction reverted on-chain');
-        return data.result;
+      const receipt = await rpcPost('eth_getTransactionReceipt', [txHash]);
+      if (receipt && receipt.blockNumber) {
+        if (receipt.status === '0x0') throw new Error('Transaction reverted on-chain');
+        return receipt;
       }
     } catch(e) { if (e.message.includes('reverted')) throw e; }
     await new Promise(r => setTimeout(r, 2000)); // poll every 2s
   }
-  // Timeout — tx was sent, just couldn't confirm in time; treat as success
-  return null;
+
+  throw new Error(
+    `Transaction was sent but not confirmed within ${Math.round(timeoutMs / 1000)} seconds. ` +
+    `It may still be pending; check the explorer.`
+  );
+}
+
+async function waitForTransactionAcceptance(txHash, address, nonceBefore, timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const [tx, pendingNonceHex] = await Promise.all([
+        rpcPost('eth_getTransactionByHash', [txHash]),
+        rpcPost('eth_getTransactionCount', [address, 'pending'])
+      ]);
+
+      if (tx) return tx;
+
+      const pendingNonce = BigInt(pendingNonceHex || '0x0');
+      if (pendingNonce > nonceBefore) return { hash: txHash };
+    } catch (_) {}
+
+    await sleep(2000);
+  }
+
+  throw new Error(
+    'Transaction hash was returned by MetaMask, but the network did not accept it. ' +
+    'This usually means the transaction was underpriced or dropped before reaching the ARC mempool.'
+  );
+}
+
+function clearPendingMonitor() {
+  if (pendingTxMonitor) {
+    clearTimeout(pendingTxMonitor);
+    pendingTxMonitor = null;
+  }
+}
+
+function setRegisterButtonIdle() {
+  const btn = document.getElementById('registerBtn');
+  if (!btn) return;
+  btn.disabled = false;
+  btn.textContent = 'Register Now';
+}
+
+async function finalizeSuccessfulRegistration(txHash, name) {
+  showTx('success', `✅ <strong>${name}.arc</strong> registered! · <a href="${EXPLORER}/tx/${txHash}" target="_blank" class="underline font-bold">View TX ↗</a>`);
+  setResultState('taken', 'Registered · Owner: you');
+  currentAvailable = false;
+  document.getElementById('resultAction').innerHTML = `
+    <div class="flex items-center gap-4 px-4">
+      <span class="text-green-400 font-bold text-sm">🎉 Yours!</span>
+      <a href="${EXPLORER}/tx/${txHash}" target="_blank"
+         class="border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-white/5 transition-all">View TX ↗</a>
+    </div>`;
+  cache.recentLogs.ts = 0;
+  cache.totalCount.ts = 0;
+  await loadMyNames();
+  loadRecentNames();
+  loadRecentCount();
+  clearPendingMonitor();
+}
+
+function startPendingReceiptMonitor(txHash, name, txNonce) {
+  clearPendingMonitor();
+  let missingChecks = 0;
+
+  const poll = async () => {
+    try {
+      const [receipt, tx, pendingNonceHex, latestNonceHex] = await Promise.all([
+        rpcPost('eth_getTransactionReceipt', [txHash]).catch(() => null),
+        rpcPost('eth_getTransactionByHash', [txHash]).catch(() => null),
+        rpcPost('eth_getTransactionCount', [userAddress, 'pending']).catch(() => null),
+        rpcPost('eth_getTransactionCount', [userAddress, 'latest']).catch(() => null)
+      ]);
+
+      if (receipt && receipt.blockNumber) {
+        if (receipt.status === '0x0') {
+          setRegisterButtonIdle();
+          showTx('fail', `❌ Transaction reverted on-chain. <a href="${EXPLORER}/tx/${txHash}" target="_blank" class="underline font-bold">View TX ↗</a>`);
+          clearPendingMonitor();
+          return;
+        }
+
+        await finalizeSuccessfulRegistration(txHash, name);
+        return;
+      }
+
+      const pendingNonce = pendingNonceHex ? BigInt(pendingNonceHex) : null;
+      const latestNonce = latestNonceHex ? BigInt(latestNonceHex) : null;
+      if (!tx && pendingNonce !== null && latestNonce !== null && pendingNonce <= txNonce && latestNonce <= txNonce) {
+        missingChecks += 1;
+        if (missingChecks >= 6) {
+          setRegisterButtonIdle();
+          showTx('fail', `❌ Transaction was dropped by the network before confirmation. <a href="${EXPLORER}/tx/${txHash}" target="_blank" class="underline font-bold">View TX ↗</a>`);
+          clearPendingMonitor();
+          return;
+        }
+      } else {
+        missingChecks = 0;
+      }
+    } catch (_) {}
+
+    pendingTxMonitor = setTimeout(poll, 5000);
+  };
+
+  pendingTxMonitor = setTimeout(poll, 5000);
 }
 
 // ─── REGISTER ────────────────────────────────────────────────────────────────
@@ -602,6 +1653,8 @@ async function registerName() {
   if (!userAddress) { await connectWallet(); return; }
 
   const btn = document.getElementById('registerBtn');
+  let sentTxHash = null;
+  let sentNonce = null;
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Waiting...';
   showTx('pending', '<span class="spinner"></span>Preparing...');
@@ -630,6 +1683,14 @@ async function registerName() {
       );
     }
 
+    const walletCode = await getWalletContractCode();
+    if (!walletCode || walletCode === '0x') {
+      throw new Error(
+        'This wallet is connected to an ARC network configuration that cannot see the registry contract. ' +
+        'Remove ARC Testnet and add it again from this page, or use Rabby for more reliable ARC transactions.'
+      );
+    }
+
     // Re-init provider/signer/contract with correct chain
     provider = new ethers.BrowserProvider(window.ethereum);
     signer = await provider.getSigner();
@@ -644,57 +1705,63 @@ async function registerName() {
   showTx('pending', '<span class="spinner"></span>Waiting for MetaMask signature...');
 
   try {
-    // ── All reads via original RPC (avoids thirdweb rate limiting) ──────────
-    const rpcPost = (method, params) => fetch(RPC_URL, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({jsonrpc:'2.0', method, params, id: Date.now()})
-    }).then(r => r.json());
-
-    // Gas price: network value +20%, floor 25 gwei
-    const gpData    = await rpcPost('eth_gasPrice', []);
-    const netGas    = BigInt(gpData.result || '0x0');
-    const floor     = BigInt(25e9);
-    const gasPrice  = '0x' + ((netGas * 120n / 100n > floor ? netGas * 120n / 100n : floor)).toString(16);
-
-    // Encode register(name) calldata
-    const iface    = new ethers.Interface(['function register(string calldata name) external']);
+    // Preflight via public/proxy RPC, but let the wallet/provider choose fee fields.
+    const iface = new ethers.Interface(['function register(string calldata name) external']);
     const calldata = iface.encodeFunctionData('register', [currentName]);
 
-    // Estimate gas via original RPC
-    const estData  = await rpcPost('eth_estimateGas', [{ from: userAddress, to: CONTRACT_ADDRESS, data: calldata }]);
-    const gasLimit = estData.result ? '0x' + (Math.ceil(parseInt(estData.result, 16) * 1.3)).toString(16) : '0x493E0';
+    const estimateHex = await rpcPost('eth_estimateGas', [{
+      from: userAddress,
+      to: CONTRACT_ADDRESS,
+      data: calldata
+    }]);
 
-    // Send transaction via MetaMask only (1 call to thirdweb, no polling)
-    const txHash = await window.ethereum.request({
-      method: 'eth_sendTransaction',
-      params: [{ from: userAddress, to: CONTRACT_ADDRESS, data: calldata, gasPrice, gas: gasLimit }]
-    });
+    const gasEstimate = BigInt(estimateHex);
+    if (gasEstimate < 50000n) {
+      throw new Error(
+        'The ARC RPC returned an unexpectedly low gas estimate for the registry contract.'
+      );
+    }
+    const bufferedGasLimit = (gasEstimate * 130n) / 100n;
+    const gasLimit = hexFromBigInt(bufferedGasLimit > MIN_GAS_LIMIT ? bufferedGasLimit : MIN_GAS_LIMIT);
+    const pendingNonceBefore = BigInt(await rpcPost('eth_getTransactionCount', [userAddress, 'pending']));
+    sentNonce = pendingNonceBefore;
+    const tx = await sendRegisterTransaction(currentName, BigInt(gasLimit));
+    sentTxHash = tx.hash;
+    sentNonce = BigInt(tx.nonce);
+    await waitForTransactionAcceptance(tx.hash, userAddress, pendingNonceBefore);
 
-    showTx('pending', `<span class="spinner"></span>Transaction sent · <a href="${EXPLORER}/tx/${txHash}" target="_blank" class="underline font-bold">View on Explorer ↗</a>`);
+    showTx('pending', `<span class="spinner"></span>Transaction sent · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" class="underline font-bold">View on Explorer ↗</a>`);
     btn.innerHTML = '<span class="spinner"></span>Confirming...';
 
-    // Poll for receipt via original RPC
-    await waitForReceipt(txHash);
-
-    showTx('success', `✅ <strong>${currentName}.arc</strong> registered! · <a href="${EXPLORER}/tx/${txHash}" target="_blank" class="underline font-bold">View TX ↗</a>`);
-    setResultState('taken', 'Registered · Owner: you');
-    currentAvailable = false;
-    document.getElementById('resultAction').innerHTML = `
-      <div class="flex items-center gap-4 px-4">
-        <span class="text-green-400 font-bold text-sm">🎉 Yours!</span>
-        <a href="${EXPLORER}/tx/${txHash}" target="_blank"
-           class="border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-white/5 transition-all">View TX ↗</a>
-      </div>`;
-    await loadMyNames();
-    loadRecentNames();
-    loadRecentCount();
+    // Wait for receipt, but keep tracking in background if confirmation is slow.
+    await waitForReceipt(tx.hash, 45000);
+    await finalizeSuccessfulRegistration(tx.hash, currentName);
   } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Register Now';
     let msg = e.message || 'Transaction failed';
     if (e.code === 4001) msg = 'Rejected by user.';
     else if (msg.includes('NameAlreadyTaken')) msg = 'Name was just taken by someone else.';
     else if (msg.includes('InvalidCharacter'))  msg = 'Invalid characters in name.';
+    else if (msg.includes('unexpectedly low gas estimate')) {
+      msg = 'This wallet is using a stale ARC RPC and sees too little gas for the contract. Re-add ARC Testnet or use Rabby, which is currently more reliable on ARC.';
+    }
+    else if (msg.includes('cannot see the registry contract')) {
+      msg = 'This wallet cannot see the ARC name registry contract on its current RPC. Re-add ARC Testnet or use Rabby, which is currently more reliable on ARC.';
+    }
+    else if (msg.includes('Insufficient USDC for gas')) {
+      msg = msg;
+    }
+    else if (msg.includes('did not accept it')) {
+      msg = 'The wallet returned a tx hash, but ARC did not accept the transaction into the mempool. If this repeats in MetaMask, use Rabby for ARC Testnet.';
+    }
+    else if (msg.includes('not confirmed within')) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Pending...';
+      showTx('pending', `⏳ ${msg} <a href="${EXPLORER}/tx/${sentTxHash}" target="_blank" class="underline font-bold">View TX ↗</a>`);
+      if (sentTxHash && sentNonce !== null) startPendingReceiptMonitor(sentTxHash, currentName, sentNonce);
+      return;
+    }
+    btn.disabled = false;
+    btn.textContent = 'Register Now';
     showTx('fail', '❌ ' + msg);
   }
 }
@@ -723,7 +1790,10 @@ async function loadSuggestions(name) {
   // Check each availability
   for (const v of variants) {
     try {
-      const ok = await readContract.isAvailable(v);
+      const cached = cache.suggestions.get(v);
+      const fresh = cached && (Date.now() - cached.ts) < SUGGESTION_CACHE_MS;
+      const ok = fresh ? cached.ok : await isNameAvailable(v);
+      if (!fresh) cache.suggestions.set(v, { ts: Date.now(), ok });
       const badge = document.getElementById(`sug-badge-${v}`);
       if (badge) {
         badge.textContent = ok ? '✓ Available' : '✗ Taken';
@@ -737,17 +1807,14 @@ async function loadSuggestions(name) {
 async function loadRecentNames() {
   const list = document.getElementById('recentList');
   try {
-    const iface  = new ethers.Interface(ABI);
-    const filter = { address: CONTRACT_ADDRESS, topics: [ethers.id("NameRegistered(string,address,uint256)")] };
-    const latest = await publicProvider.getBlockNumber();
-    const logs   = await publicProvider.getLogs({ ...filter, fromBlock: Math.max(0, latest - 5000), toBlock: 'latest' });
+    const logs = await getRecentRegistrationLogs();
 
     if (!logs.length) { list.innerHTML = '<p class="text-zinc-600 text-sm">No names registered yet.</p>'; return; }
 
     // Show last 4
     const recent = logs.slice(-4).reverse();
     list.innerHTML = recent.map(log => {
-      const decoded = iface.parseLog(log);
+      const decoded = contractInterface.parseLog(log);
       const name    = decoded.args[0];
       const owner   = decoded.args[1];
       const short   = owner.slice(0,6) + '...' + owner.slice(-4);
@@ -780,18 +1847,19 @@ async function loadRecentNames() {
 
 async function loadRecentCount() {
   try {
-    const filter = { address: CONTRACT_ADDRESS, topics: [ethers.id("NameRegistered(string,address,uint256)")] };
-    const latest = await publicProvider.getBlockNumber();
-    const logs   = await publicProvider.getLogs({ ...filter, fromBlock: 0, toBlock: 'latest' });
-    document.getElementById('recentCount').textContent = logs.length;
+    document.getElementById('recentCount').textContent = await getTotalRegistrationCount();
   } catch{}
 }
 
 // ─── MY NAMES ────────────────────────────────────────────────────────────────
 async function loadMyNames() {
-  if (!contract || !userAddress) return;
+  if (!userAddress) {
+    ownedNames = [];
+    return;
+  }
   try {
-    const names = await contract.getNames(userAddress);
+    const names = await getNamesByOwner(userAddress);
+    ownedNames = names;
 
     // Sidebar
     const sidebar = document.getElementById('myNamesSidebar');
@@ -803,12 +1871,19 @@ async function loadMyNames() {
         <button onclick="performSearch('${n}')" class="p-3 text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 text-sm transition-all text-left">
           <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>${n}.arc
         </button>`).join('');
+    } else {
+      sidebar.classList.add('hidden');
+      sidebar.classList.remove('flex');
+      sList.innerHTML = '';
     }
 
     // Main panel (only if results not shown)
     const panel = document.getElementById('myNamesPanel');
     const pList = document.getElementById('myNamesPanelList');
-    if (!document.getElementById('resultsSection').classList.contains('hidden')) return;
+    if (!document.getElementById('resultsSection').classList.contains('hidden')) {
+      if (currentSection === 'identity') loadIdentityView();
+      return;
+    }
     if (names.length > 0) {
       panel.classList.remove('hidden');
       pList.innerHTML = names.map(n => `
@@ -825,7 +1900,11 @@ async function loadMyNames() {
           <a href="${EXPLORER}/address/${userAddress}" target="_blank"
              class="px-4 py-2 border border-white/10 rounded-full text-xs font-bold text-white hover:bg-white/5 transition-all">View ↗</a>
         </div>`).join('');
+    } else {
+      panel.classList.add('hidden');
+      pList.innerHTML = '';
     }
+    if (currentSection === 'identity') loadIdentityView();
   } catch(e) { console.error(e); }
 }
 
@@ -850,11 +1929,9 @@ function validateName(name) {
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
-  if (window.ethereum) {
-    const accounts = await window.ethereum.request({ method:'eth_accounts' });
-    if (accounts.length > 0) connectWallet();
-  }
+  showSection(getSavedSection());
   loadRecentCount();
+  restoreWalletSession();
 });
 </script>
 </body>

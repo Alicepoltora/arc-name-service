@@ -1,0 +1,8 @@
+{
+  "name": "arc-name-service",
+  "private": true,
+  "dependencies": {
+    "@vercel/blob": "2.3.2",
+    "ethers": "6.16.0"
+  }
+}
