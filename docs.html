@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ANS Docs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#0f172a",
+            mist: "#f8fafc",
+            line: "#e2e8f0",
+            soft: "#64748b",
+            accent: "#2563eb",
+            accentSoft: "#dbeafe",
+            surface: "#ffffff",
+            panel: "#f8fafc"
+          },
+          fontFamily: {
+            heading: ["Space Grotesk", "sans-serif"],
+            body: ["Inter", "sans-serif"]
+          },
+          boxShadow: {
+            calm: "0 20px 50px rgba(15, 23, 42, 0.08)"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+    .docs-prose h2 { scroll-margin-top: 96px; }
+    .docs-prose h3 { scroll-margin-top: 96px; }
+    .docs-prose code { color: #0f172a; background: #e2e8f0; padding: 0.15rem 0.35rem; border-radius: 0.4rem; font-size: 0.9em; }
+    .docs-prose pre code { background: transparent; padding: 0; color: inherit; }
+    .toc-link.active, .nav-link.active {
+      color: #2563eb;
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+  </style>
+</head>
+<body class="bg-mist text-ink selection:bg-accent selection:text-white">
+  <div class="min-h-screen">
+    <header class="sticky top-0 z-50 border-b border-line/80 bg-white/90 backdrop-blur">
+      <div class="mx-auto flex max-w-[1600px] items-center justify-between gap-6 px-5 py-4 lg:px-8">
+        <div class="flex items-center gap-4">
+          <a href="/" class="flex items-center gap-3">
+            <span class="font-heading text-2xl font-bold tracking-tight text-accent">ANS</span>
+            <div class="hidden sm:block">
+              <p class="font-heading text-sm font-semibold text-ink">ARC Name Service Docs</p>
+              <p class="text-xs text-soft">Naming, identity, profiles, deployment</p>
+            </div>
+          </a>
+        </div>
+        <div class="hidden items-center gap-3 md:flex">
+          <a href="https://testnet.arcscan.app/address/0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080" target="_blank" class="rounded-full border border-line px-4 py-2 text-sm font-medium text-soft transition hover:border-accent hover:text-accent">Explorer</a>
+          <a href="https://github.com/Alicepoltora/arc-name-service" target="_blank" class="rounded-full border border-line px-4 py-2 text-sm font-medium text-soft transition hover:border-accent hover:text-accent">GitHub</a>
+          <a href="/" class="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-calm transition hover:bg-blue-700">Open App</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="mx-auto grid max-w-[1600px] grid-cols-1 gap-8 px-5 py-8 lg:grid-cols-[280px_minmax(0,1fr)_260px] lg:px-8">
+      <aside class="hidden lg:block">
+        <div class="sticky top-24 space-y-6">
+          <div class="rounded-2xl border border-line bg-surface p-4 shadow-calm">
+            <p class="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-soft">Get Started</p>
+            <nav class="space-y-1">
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#welcome">Welcome</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#quickstart">Quickstart</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#concepts">Core Concepts</a>
+            </nav>
+          </div>
+
+          <div class="rounded-2xl border border-line bg-surface p-4 shadow-calm">
+            <p class="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-soft">Core Workflows</p>
+            <nav class="space-y-1">
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#domains">Domains</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#identity">Identity</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#public-profiles">Public Profiles</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#taken-domains">Taken Domain Display</a>
+            </nav>
+          </div>
+
+          <div class="rounded-2xl border border-line bg-surface p-4 shadow-calm">
+            <p class="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-soft">Reference</p>
+            <nav class="space-y-1">
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#architecture">Architecture</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#contract-reference">Contract Reference</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#api-reference">API Reference</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#storage-security">Storage & Security</a>
+            </nav>
+          </div>
+
+          <div class="rounded-2xl border border-line bg-surface p-4 shadow-calm">
+            <p class="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-soft">Operations</p>
+            <nav class="space-y-1">
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#local-development">Local Development</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#vercel-deployment">Vercel Deployment</a>
+              <a class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#troubleshooting">Troubleshooting</a>
+            </nav>
+          </div>
+        </div>
+      </aside>
+
+      <main class="min-w-0">
+        <article class="docs-prose prose prose-slate max-w-none rounded-[2rem] border border-line bg-surface px-6 py-8 shadow-calm sm:px-10 lg:px-14">
+          <section id="welcome" class="border-b border-line pb-10">
+            <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-accentSoft px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+              <span class="material-symbols-outlined text-sm">description</span>
+              ARC Name Service Documentation
+            </p>
+            <h1 class="font-heading text-5xl font-bold tracking-tight text-ink">Welcome to ANS</h1>
+            <p class="mt-6 max-w-3xl text-lg leading-8 text-soft">
+              ARC Name Service is a naming and identity dApp for ARC Testnet. It combines on-chain name registration with a lightweight public profile layer, so a domain can behave both as an address alias and as a discoverable public identity.
+            </p>
+            <div class="mt-8 grid gap-4 md:grid-cols-3">
+              <div class="rounded-2xl border border-line bg-panel p-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-soft">Network</p>
+                <p class="mt-3 font-heading text-2xl font-bold text-ink">ARC Testnet</p>
+                <p class="mt-2 text-sm text-soft">Chain ID <code>5042002</code></p>
+              </div>
+              <div class="rounded-2xl border border-line bg-panel p-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-soft">Contract</p>
+                <p class="mt-3 break-all font-mono text-sm font-semibold text-ink">0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080</p>
+                <p class="mt-2 text-sm text-soft">Live and publicly deployed</p>
+              </div>
+              <div class="rounded-2xl border border-line bg-panel p-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-soft">Profiles</p>
+                <p class="mt-3 font-heading text-2xl font-bold text-ink">Public</p>
+                <p class="mt-2 text-sm text-soft">Avatar and Twitter are served from Vercel Blob</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="quickstart" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Quickstart</h2>
+            <p class="mt-3 text-soft">Use this sequence if you just want to get from zero to a registered name and a public identity profile.</p>
+            <ol class="mt-6 space-y-4 rounded-2xl border border-line bg-panel p-6">
+              <li>
+                <strong>Open the app.</strong>
+                Visit <a href="https://arcnames.xyz" class="text-accent hover:underline">arcnames.xyz</a>.
+              </li>
+              <li>
+                <strong>Connect a wallet.</strong>
+                Rabby is generally smoother than MetaMask on ARC Testnet.
+              </li>
+              <li>
+                <strong>Switch to ARC Testnet.</strong>
+                The app can add or switch the network automatically when the wallet supports it.
+              </li>
+              <li>
+                <strong>Fund gas.</strong>
+                Use <a href="https://faucet.circle.com" target="_blank" class="text-accent hover:underline">Circle Faucet</a> to get testnet USDC.
+              </li>
+              <li>
+                <strong>Search and register a name.</strong>
+                If the name is available, confirm the transaction in the wallet.
+              </li>
+              <li>
+                <strong>Open Identity.</strong>
+                Choose your primary name, upload an avatar, and connect a Twitter/X handle.
+              </li>
+            </ol>
+          </section>
+
+          <section id="concepts" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Core Concepts</h2>
+            <div class="mt-6 grid gap-4 md:grid-cols-2">
+              <div class="rounded-2xl border border-line p-5">
+                <h3 class="font-heading text-xl font-bold text-ink">On-chain names</h3>
+                <p class="mt-2 text-sm leading-7 text-soft">Names are registered through the `NameRegistry` smart contract and become permanent entries owned by a wallet address.</p>
+              </div>
+              <div class="rounded-2xl border border-line p-5">
+                <h3 class="font-heading text-xl font-bold text-ink">App-level primary identity</h3>
+                <p class="mt-2 text-sm leading-7 text-soft">The app lets the wallet choose a primary name for profile editing and display. This is an application preference, not an on-chain contract mutation.</p>
+              </div>
+              <div class="rounded-2xl border border-line p-5">
+                <h3 class="font-heading text-xl font-bold text-ink">Public profiles</h3>
+                <p class="mt-2 text-sm leading-7 text-soft">Public profile data currently consists of avatar and Twitter/X handle, stored off-chain and served back on lookup.</p>
+              </div>
+              <div class="rounded-2xl border border-line p-5">
+                <h3 class="font-heading text-xl font-bold text-ink">Wallet-signed updates</h3>
+                <p class="mt-2 text-sm leading-7 text-soft">Profile changes are signed by the wallet so the server can verify who is allowed to update a domain profile.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="domains" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Domains</h2>
+            <p class="mt-3 text-soft">The `Domains` section is the core registration and lookup surface of the application.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">What users can do</h3>
+            <ul class="mt-4">
+              <li>Search any `.arc` name</li>
+              <li>Check whether the name is available</li>
+              <li>Register an available name on-chain</li>
+              <li>Inspect recent registrations</li>
+              <li>See related suggestions</li>
+              <li>Inspect taken-domain public profile data</li>
+            </ul>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">Name rules</h3>
+            <ul class="mt-4">
+              <li>Length must be between <code>3</code> and <code>32</code> characters</li>
+              <li>Allowed characters: lowercase <code>a-z</code>, digits <code>0-9</code>, hyphen <code>-</code></li>
+              <li>Registration is first-come, first-served</li>
+              <li>Names do not expire in the current contract design</li>
+            </ul>
+          </section>
+
+          <section id="identity" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Identity</h2>
+            <p class="mt-3 text-soft">The `Identity` section is the profile management layer for the connected wallet.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">Current identity capabilities</h3>
+            <ul class="mt-4">
+              <li>Load all names owned by the connected wallet via <code>getNames(address)</code></li>
+              <li>Select one name as the primary name inside the app</li>
+              <li>Upload or replace a public avatar for the primary domain</li>
+              <li>Remove the avatar</li>
+              <li>Attach or remove a Twitter/X handle</li>
+            </ul>
+            <div class="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+              <p class="text-sm leading-7 text-amber-900">
+                <strong>Important:</strong> the app-level primary name is not yet written on-chain. The contract still returns the first registered name from <code>reverseResolve(address)</code>.
+              </p>
+            </div>
+          </section>
+
+          <section id="public-profiles" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Public Profiles</h2>
+            <p class="mt-3 text-soft">Public profile data is no longer stored only in the browser. It is now persisted in Vercel Blob and served publicly.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">Profile fields</h3>
+            <ul class="mt-4">
+              <li><code>avatar</code></li>
+              <li><code>avatarPathname</code></li>
+              <li><code>twitter</code></li>
+              <li><code>address</code></li>
+              <li><code>name</code></li>
+              <li><code>updatedAt</code></li>
+            </ul>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">Avatar behavior</h3>
+            <ul class="mt-4">
+              <li>Only image uploads are accepted</li>
+              <li>The current size limit is <code>1 MB</code></li>
+              <li>Files are uploaded to Blob through a signed flow</li>
+              <li>Profiles reference the final public Blob URL</li>
+            </ul>
+          </section>
+
+          <section id="taken-domains" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Taken Domain Display</h2>
+            <p class="mt-3 text-soft">When a searched domain is already registered, the search result becomes a lightweight public profile card.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">If profile data exists</h3>
+            <ul class="mt-4">
+              <li>The result icon becomes the public avatar</li>
+              <li>The Twitter/X handle appears in the result metadata</li>
+              <li>The owner address remains visible and linked to the explorer</li>
+            </ul>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">If profile data does not exist</h3>
+            <ul class="mt-4">
+              <li>The result falls back to the standard taken-domain state</li>
+              <li>Owner address and explorer actions are still shown</li>
+            </ul>
+          </section>
+
+          <section id="architecture" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Architecture</h2>
+            <p class="mt-3 text-soft">The project has three implementation layers.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">1. Smart contract</h3>
+            <p class="mt-3 text-soft">The contract in <a href="https://github.com/Alicepoltora/arc-name-service/blob/main/NameRegistry.sol" target="_blank">NameRegistry.sol</a> manages registration and read-side ownership logic.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">2. Frontend</h3>
+            <p class="mt-3 text-soft">The UI in <a href="https://github.com/Alicepoltora/arc-name-service/blob/main/arc-ens.html" target="_blank">arc-ens.html</a> handles wallet UX, search, registration, identity flows, and profile editing.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">3. Serverless API</h3>
+            <p class="mt-3 text-soft">Small Vercel Functions provide read failover, Blob uploads, and public profile persistence.</p>
+          </section>
+
+          <section id="contract-reference" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Contract Reference</h2>
+            <p class="mt-3 text-soft">Main public contract functions:</p>
+            <pre class="mt-6 overflow-x-auto rounded-2xl bg-slate-950 px-5 py-4 text-sm text-slate-100"><code>register(string name)
+resolve(string name) returns (address)
+isAvailable(string name) returns (bool)
+getNames(address owner) returns (string[] memory)
+reverseResolve(address addr) returns (string memory)
+nameCount(address owner) returns (uint256)</code></pre>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">Current tradeoffs</h3>
+            <ul class="mt-4">
+              <li>No on-chain primary-name setter yet</li>
+              <li>No on-chain avatar metadata yet</li>
+              <li><code>NameRegistered</code> uses <code>string indexed name</code>, which is less convenient for some log consumers</li>
+            </ul>
+          </section>
+
+          <section id="api-reference" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">API Reference</h2>
+            <p class="mt-3 text-soft">The app exposes a small server-side surface on the same Vercel project.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink"><code>POST /api/rpc</code></h3>
+            <p class="mt-3 text-soft">ARC JSON-RPC proxy with failover and basic rate-limit retry behavior.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink"><code>POST /api/blob-upload</code></h3>
+            <p class="mt-3 text-soft">Issues a secure upload token for avatar upload after verifying the signed identity proof.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink"><code>GET /api/profile</code></h3>
+            <p class="mt-3 text-soft">Returns the public profile for a specific wallet + domain pair.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink"><code>POST /api/profile</code></h3>
+            <p class="mt-3 text-soft">Verifies a signed payload, then writes the public profile JSON to Blob.</p>
+          </section>
+
+          <section id="storage-security" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Storage & Security</h2>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">Storage model</h3>
+            <ul class="mt-4">
+              <li>Avatars are stored in public Vercel Blob objects</li>
+              <li>Profile JSON is also stored in Blob</li>
+              <li>The app reads profile data by wallet address + domain name</li>
+            </ul>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">Authorization model</h3>
+            <ul class="mt-4">
+              <li>The frontend builds a signed proof message</li>
+              <li>The wallet signs that message</li>
+              <li>The server verifies the recovered address</li>
+              <li>Only after verification does the server accept upload or save profile data</li>
+            </ul>
+          </section>
+
+          <section id="local-development" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Local Development</h2>
+            <p class="mt-3 text-soft">Because the app depends on Vercel Functions and Vercel Blob, local development should run through Vercel instead of a bare static server.</p>
+            <pre class="mt-6 overflow-x-auto rounded-2xl bg-slate-950 px-5 py-4 text-sm text-slate-100"><code>npm install
+vercel env pull .env.local
+vercel dev</code></pre>
+            <p class="mt-4 text-soft">Required tooling:</p>
+            <ul class="mt-4">
+              <li>Node.js 18+</li>
+              <li>npm</li>
+              <li>Vercel CLI</li>
+              <li>Wallet with ARC Testnet support</li>
+            </ul>
+          </section>
+
+          <section id="vercel-deployment" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Vercel Deployment</h2>
+            <p class="mt-3 text-soft">The project is already structured for Vercel deployment.</p>
+            <pre class="mt-6 overflow-x-auto rounded-2xl bg-slate-950 px-5 py-4 text-sm text-slate-100"><code>vercel deploy --prod</code></pre>
+            <p class="mt-4 text-soft">Required project state:</p>
+            <ul class="mt-4">
+              <li>project linked in Vercel CLI</li>
+              <li>Blob store attached to the project</li>
+              <li><code>BLOB_READ_WRITE_TOKEN</code> present in environments</li>
+            </ul>
+            <p class="mt-4 text-soft">Current root rewrite behavior comes from <a href="https://github.com/Alicepoltora/arc-name-service/blob/main/vercel.json" target="_blank">vercel.json</a>.</p>
+          </section>
+
+          <section id="troubleshooting" class="pt-12">
+            <h2 class="font-heading text-3xl font-bold tracking-tight text-ink">Troubleshooting</h2>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">Wallet reconnect</h3>
+            <p class="mt-3 text-soft">The app restores a previously authorized wallet on reload through a quiet account check. If the user explicitly disconnects through the UI, auto-restore is suppressed until reconnect.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">MetaMask instability on ARC</h3>
+            <p class="mt-3 text-soft">Rabby is usually more reliable than MetaMask on ARC Testnet. The app still contains network repair and warning logic for MetaMask users.</p>
+            <h3 class="mt-8 font-heading text-2xl font-bold text-ink">Blob upload issues</h3>
+            <p class="mt-3 text-soft">If avatar upload fails, check that the Vercel project still has an attached Blob store and that <code>BLOB_READ_WRITE_TOKEN</code> exists in the active environment.</p>
+          </section>
+        </article>
+      </main>
+
+      <aside class="hidden xl:block">
+        <div class="sticky top-24 rounded-2xl border border-line bg-surface p-4 shadow-calm">
+          <p class="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-soft">On this page</p>
+          <nav class="space-y-1">
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#welcome">Welcome</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#quickstart">Quickstart</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#concepts">Core Concepts</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#domains">Domains</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#identity">Identity</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#public-profiles">Public Profiles</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#architecture">Architecture</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#contract-reference">Contract Reference</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#api-reference">API Reference</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#storage-security">Storage & Security</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#local-development">Local Development</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#vercel-deployment">Vercel Deployment</a>
+            <a class="toc-link block rounded-xl border border-transparent px-3 py-2 text-sm text-soft transition hover:border-line hover:bg-panel hover:text-ink" href="#troubleshooting">Troubleshooting</a>
+          </nav>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const observedSections = [
+      'welcome',
+      'quickstart',
+      'concepts',
+      'domains',
+      'identity',
+      'public-profiles',
+      'taken-domains',
+      'architecture',
+      'contract-reference',
+      'api-reference',
+      'storage-security',
+      'local-development',
+      'vercel-deployment',
+      'troubleshooting'
+    ];
+
+    const navLinks = [...document.querySelectorAll('.nav-link, .toc-link')];
+    const sectionMap = new Map(observedSections.map((id) => [id, document.getElementById(id)]));
+
+    function setActiveDocsLink(id) {
+      navLinks.forEach((link) => {
+        const active = link.getAttribute('href') === `#${id}`;
+        link.classList.toggle('active', active);
+      });
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+      if (visible.length) {
+        setActiveDocsLink(visible[0].target.id);
+      }
+    }, {
+      rootMargin: '-20% 0px -65% 0px',
+      threshold: [0.1, 0.4, 0.75]
+    });
+
+    observedSections.forEach((id) => {
+      const section = sectionMap.get(id);
+      if (section) observer.observe(section);
+    });
+
+    setActiveDocsLink(location.hash.replace('#', '') || 'welcome');
+  </script>
+</body>
+</html>

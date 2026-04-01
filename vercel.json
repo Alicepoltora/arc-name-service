@@ -3,6 +3,14 @@
     {
       "source": "/",
       "destination": "/arc-ens.html"
+    },
+    {
+      "source": "/docs",
+      "destination": "/docs.html"
+    },
+    {
+      "source": "/docs/",
+      "destination": "/docs.html"
     }
   ]
 }

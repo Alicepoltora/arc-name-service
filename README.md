@@ -7,10 +7,10 @@ ENS-like naming and identity dApp for **ARC Testnet**
 [![Network: ARC Testnet](https://img.shields.io/badge/network-ARC%20Testnet-4f8cff)](https://docs.arc.network)
 [![Chain ID](https://img.shields.io/badge/chain%20id-5042002-111827)](https://docs.arc.network)
 [![Contract](https://img.shields.io/badge/contract-live-success)](https://testnet.arcscan.app/address/0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080)
-[![Vercel](https://img.shields.io/badge/deployed%20on-Vercel-black)](https://arc-name-service-new-20260401.vercel.app)
+[![Live](https://img.shields.io/badge/live-arcnames.xyz-black)](https://arcnames.xyz)
 [![Storage](https://img.shields.io/badge/storage-Vercel%20Blob-7c3aed)](https://vercel.com/docs/vercel-blob)
 
-[Live App](https://arc-name-service-new-20260401.vercel.app) · [Explorer](https://testnet.arcscan.app/address/0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080) · [ARC Docs](https://docs.arc.network) · [Repository](https://github.com/Alicepoltora/arc-name-service)
+[Live App](https://arcnames.xyz) · [Docs](https://arcnames.xyz/docs) · [Explorer](https://testnet.arcscan.app/address/0xEDcd3636584074cBCa4B685Cc5FE5080E70CC080) · [Repository](https://github.com/Alicepoltora/arc-name-service)
 
 </div>
 
@@ -32,7 +32,7 @@ The project is intentionally simple in structure:
 
 ### Use the live app
 
-1. Open [arc-name-service-new-20260401.vercel.app](https://arc-name-service-new-20260401.vercel.app)
+1. Open [arcnames.xyz](https://arcnames.xyz)
 2. Connect a wallet
 3. Switch to **ARC Testnet** if prompted
 4. Get testnet USDC from [Circle Faucet](https://faucet.circle.com)
