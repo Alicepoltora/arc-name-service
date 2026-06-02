@@ -1929,6 +1929,105 @@ function validateName(name) {
   return null;
 }
 
+// ─── AI CHAT ASSISTANT ────────────────────────────────────────────────────────
+let aiChatOpen = false;
+let aiMessages = [
+  { role: 'assistant', content: 'Привет! Я твой онбординг-ассистент в сети ARC. Помогу настроить кошелек, получить токены или решить проблемы с транзакциями.' }
+];
+
+function toggleAIChat() {
+  const box = document.getElementById('aiChatBox');
+  aiChatOpen = !aiChatOpen;
+  box.classList.toggle('hidden', !aiChatOpen);
+  if (aiChatOpen) {
+    document.getElementById('aiChatInput').focus();
+    scrollChatToBottom();
+  }
+}
+
+function scrollChatToBottom() {
+  const msgContainer = document.getElementById('aiChatMessages');
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+
+function sendQuickQuestion(questionText) {
+  document.getElementById('aiChatInput').value = questionText;
+  sendUserMessage();
+}
+
+async function sendUserMessage() {
+  const input = document.getElementById('aiChatInput');
+  const prompt = input.value.trim();
+  if (!prompt) return;
+
+  input.value = '';
+  appendMessage('user', prompt);
+
+  // Append typing indicator
+  const messagesContainer = document.getElementById('aiChatMessages');
+  const indicatorId = 'ai-typing-indicator';
+  const indicatorHtml = `
+    <div id="${indicatorId}" class="flex gap-2">
+      <div class="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-sm">smart_toy</span>
+      </div>
+      <div class="bg-surface-container-low rounded-2xl p-3 text-sm text-zinc-500 max-w-[80%] flex items-center gap-1">
+        <span class="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+        <span class="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+        <span class="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+      </div>
+    </div>`;
+  messagesContainer.insertAdjacentHTML('beforeend', indicatorHtml);
+  scrollChatToBottom();
+
+  try {
+    const response = await fetch('/api/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: aiMessages })
+    });
+
+    const data = await response.json();
+    document.getElementById(indicatorId)?.remove();
+
+    if (response.ok && data.reply) {
+      appendMessage('assistant', data.reply);
+    } else {
+      appendMessage('assistant', '❌ Произошла ошибка при получении ответа от ИИ-ассистента.');
+    }
+  } catch (err) {
+    document.getElementById(indicatorId)?.remove();
+    appendMessage('assistant', '❌ Не удалось связаться с сервером ассистента.');
+  }
+}
+
+function appendMessage(role, content) {
+  aiMessages.push({ role, content });
+  const messagesContainer = document.getElementById('aiChatMessages');
+  const isAssistant = role === 'assistant';
+
+  // Parse Markdown (basic parser for bold, links, and line breaks)
+  let parsedContent = content
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-primary hover:underline font-bold">$1 ↗</a>')
+    .replace(/\n/g, '<br/>');
+
+  const msgHtml = `
+    <div class="flex gap-2 ${isAssistant ? '' : 'justify-end'}">
+      ${isAssistant ? `
+      <div class="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-sm">smart_toy</span>
+      </div>` : ''}
+      <div class="${isAssistant ? 'bg-surface-container-low text-zinc-300' : 'bg-primary/20 text-white'} rounded-2xl p-3 text-sm max-w-[80%] break-words">
+        ${parsedContent}
+      </div>
+    </div>`;
+
+  messagesContainer.insertAdjacentHTML('beforeend', msgHtml);
+  scrollChatToBottom();
+}
+
 // ─── INIT ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
   showSection(getSavedSection());
@@ -1936,5 +2035,51 @@ window.addEventListener('load', async () => {
   restoreWalletSession();
 });
 </script>
+
+<!-- AI CHAT FAB -->
+<button onclick="toggleAIChat()" id="aiChatBtn" class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+  <span class="material-symbols-outlined text-2xl">smart_toy</span>
+</button>
+
+<!-- AI CHAT BOX -->
+<div id="aiChatBox" class="hidden fixed bottom-24 right-6 z-50 w-[380px] h-[500px] glass-panel border border-outline-variant/15 rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300">
+  <!-- Chat Header -->
+  <div class="px-5 py-4 border-b border-outline-variant/15 flex items-center justify-between bg-surface-container-high/80">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">smart_toy</span>
+      <div>
+        <h4 class="font-headline font-bold text-white text-sm">ARC Copilot</h4>
+        <p class="text-[10px] text-green-400 flex items-center gap-1 font-label"><span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>Онлайн</p>
+      </div>
+    </div>
+    <button onclick="toggleAIChat()" class="text-zinc-500 hover:text-zinc-200 transition-colors">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+  <!-- Messages Body -->
+  <div id="aiChatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+    <div class="flex gap-2">
+      <div class="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-sm">smart_toy</span>
+      </div>
+      <div class="bg-surface-container-low rounded-2xl p-3 text-sm text-zinc-300 max-w-[80%]">
+        Привет! Я твой онбординг-ассистент в сети ARC. Помогу настроить кошелек, получить токены или решить проблемы с транзакциями.
+      </div>
+    </div>
+  </div>
+  <!-- Quick Actions -->
+  <div class="px-4 py-2 flex flex-wrap gap-2 bg-surface-container/50 border-t border-outline-variant/15">
+    <button onclick="sendQuickQuestion('Как получить тестовые USDC?')" class="text-xs border border-outline-variant/15 text-zinc-300 hover:bg-surface-container-highest px-3 py-1.5 rounded-full transition-all">Как получить USDC?</button>
+    <button onclick="sendQuickQuestion('Как настроить кошелек?')" class="text-xs border border-outline-variant/15 text-zinc-300 hover:bg-surface-container-highest px-3 py-1.5 rounded-full transition-all">Настроить кошелек</button>
+    <button onclick="sendQuickQuestion('Транзакция зависла, что делать?')" class="text-xs border border-outline-variant/15 text-zinc-300 hover:bg-surface-container-highest px-3 py-1.5 rounded-full transition-all">Ошибка транзакции</button>
+  </div>
+  <!-- Input Area -->
+  <div class="p-3 bg-surface-container-high/80 border-t border-outline-variant/15 flex gap-2">
+    <input id="aiChatInput" type="text" placeholder="Задать вопрос..." onkeydown="if(event.key==='Enter') sendUserMessage()" class="flex-1 bg-surface-container-lowest border border-outline-variant/15 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary-dim transition-all" />
+    <button onclick="sendUserMessage()" class="bg-primary text-on-primary px-3 py-2 rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+      <span class="material-symbols-outlined text-sm">send</span>
+    </button>
+  </div>
+</div>
 </body>
 </html>
