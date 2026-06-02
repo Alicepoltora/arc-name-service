@@ -74,6 +74,7 @@ vercel deploy --prod
 - [Network And Contract](#network-and-contract)
 - [How It Works](#how-it-works)
 - [Architecture](#architecture)
+- [AI Onboarding Assistant](#ai-onboarding-assistant)
 - [Project Structure](#project-structure)
 - [Local Development](#local-development)
 - [Vercel Deployment](#vercel-deployment)
@@ -144,6 +145,13 @@ Those profile details are then shown publicly when someone searches that taken d
 - ARC RPC failover proxy for reads
 - wallet-signed profile updates
 - public profile storage via Blob-backed JSON
+
+### AI Assistant
+
+- Floating conversational chat interface integrated into the dApp
+- MetaMask & Rabby Wallet setup guidance for ARC Testnet
+- Troubleshooting instructions for getting testnet tokens (Circle Faucet)
+- Live Web3 transaction error interpretation (gas issues, RPC connection issues, naming rule violations)
 
 ## Network And Contract
 
@@ -278,6 +286,8 @@ Routes:
   secure client upload handler for Vercel Blob
 - [api/profile.js](./api/profile.js)
   public profile read/write endpoint
+- [api/agent.js](./api/agent.js)
+  AI Onboarding Assistant endpoint proxying requests to Gemini API with local fallback
 
 ### Storage
 
@@ -292,12 +302,27 @@ That gives the project:
 - simple deployment on the same Vercel project
 - no extra database required for the current scope
 
+## AI Onboarding Assistant
+
+ANS features an integrated AI Onboarding Assistant to help Web3 newcomers navigate the ARC Testnet ecosystem and troubleshoot common wallet or blockchain errors.
+
+### Features
+- **Wallet Setup Support**: Step-by-step walkthroughs on configuring Rabby Wallet (highly recommended) or MetaMask for ARC Testnet.
+- **USDC Faucet Guidance**: Instructions on how to claim free testnet USDC (which is used as the native fee token on ARC Network) from the Circle Faucet.
+- **Web3 Error Interpreter**: Clarifies reasons for transaction failures (e.g. invalid character format, insufficient gas/USDC, wrong chain ID) in plain language.
+
+### Technical Implementation
+- **Frontend Widget**: A floating glassmorphic chat widget in `arc-ens.html` that handles message history and streams input/output asynchronously.
+- **Serverless API**: `api/agent.js` serves as a secure proxy querying Google's Gemini API (`gemini-2.5-flash`) using the `GEMINI_API_KEY` environment variable.
+- **Smart Fallback System**: If the `GEMINI_API_KEY` is not set or fails, the handler falls back to local regex-based responses to answer standard questions about wallets, gas, faucets, and transaction errors.
+
 ## Project Structure
 
 ```text
 arc-name-service/
 ├── api/
 │   ├── _identity.js
+│   ├── agent.js
 │   ├── blob-upload.js
 │   ├── profile.js
 │   └── rpc.js
@@ -388,11 +413,10 @@ If you deploy a new contract, update:
 
 ## Environment Variables
 
-Main storage-related variable:
+Main environment variables configured in Vercel:
 
-- `BLOB_READ_WRITE_TOKEN`
-
-This token is typically injected by Vercel after the Blob store is linked to the project.
+- `BLOB_READ_WRITE_TOKEN`: Token for Vercel Blob storage (typically injected automatically by Vercel after linking Blob storage).
+- `GEMINI_API_KEY`: API key for Google Gemini (`gemini-2.5-flash`) to power the Onboarding Assistant. If missing, the app gracefully falls back to static regex-based answering.
 
 ## Limitations
 
