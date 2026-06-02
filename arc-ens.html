@@ -51,7 +51,7 @@
 <body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary">
 
 <!-- TOP NAV -->
-<nav class="fixed top-0 w-full z-50 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+<nav class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-outline-variant/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
   <div class="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto font-['Space_Grotesk'] tracking-tight">
     <div class="flex items-center gap-8">
       <span class="text-2xl font-bold bg-gradient-to-br from-blue-400 to-blue-600 bg-clip-text text-transparent">ANS</span>
@@ -74,12 +74,12 @@
           Connect Wallet
         </button>
         <!-- Disconnect dropdown (hidden by default) -->
-        <div id="walletMenu" class="hidden absolute right-0 top-12 bg-zinc-900 border border-white/10 rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden">
-          <div id="walletMenuAddr" class="px-4 py-3 text-xs text-zinc-400 font-mono border-b border-white/5 truncate"></div>
-          <button onclick="switchWallet()" class="w-full text-left px-4 py-3 text-sm text-zinc-200 hover:bg-white/5 flex items-center gap-2 transition-colors border-b border-white/5">
+        <div id="walletMenu" class="hidden absolute right-0 top-12 bg-surface-container-high border border-outline-variant/15 rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden">
+          <div id="walletMenuAddr" class="px-4 py-3 text-xs text-zinc-400 font-mono border-b border-outline-variant/15 truncate"></div>
+          <button onclick="switchWallet()" class="w-full text-left px-4 py-3 text-sm text-zinc-200 hover:bg-surface-container-highest flex items-center gap-2 transition-colors border-b border-outline-variant/15">
             <span class="material-symbols-outlined text-base">sync_alt</span> Switch Wallet
           </button>
-          <button onclick="disconnectWallet()" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 flex items-center gap-2 transition-colors">
+          <button onclick="disconnectWallet()" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-surface-container-highest flex items-center gap-2 transition-colors">
             <span class="material-symbols-outlined text-base">logout</span> Disconnect
           </button>
         </div>
@@ -112,7 +112,7 @@
       <p class="text-xs uppercase tracking-widest text-zinc-600 px-3 font-label">My Names</p>
       <div id="myNamesSidebarList" class="flex flex-col gap-1"></div>
     </div>
-    <div class="mt-auto border-t border-white/5 pt-6 flex flex-col gap-2">
+    <div class="mt-auto border-t border-outline-variant/15 pt-6 flex flex-col gap-2">
       <a href="/docs" class="p-3 text-zinc-500 hover:text-zinc-200 flex items-center gap-3 text-sm cursor-pointer">
         <span class="material-symbols-outlined">description</span><span>Docs</span>
       </a>
@@ -132,12 +132,12 @@
       <button id="switchNetBtn" onclick="handleSwitchNetwork()" class="bg-amber-400 text-black px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-amber-300 transition-all active:scale-95">Switch Network</button>
     </div>
 
-    <div class="bg-surface-container-low border border-white/5 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div class="bg-surface-container-low rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div>
         <p class="text-sm font-bold text-white">Recommended wallet: Rabby</p>
         <p class="text-sm text-on-surface-variant">Rabby is currently more reliable on ARC Testnet. MetaMask may leave transactions pending or use unstable RPC settings.</p>
       </div>
-      <a href="https://rabby.io" target="_blank" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 text-sm font-bold text-white hover:bg-white/5 transition-all">
+      <a href="https://rabby.io" target="_blank" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-outline-variant/15 text-sm font-bold text-white hover:bg-white/5 transition-all">
         Install Rabby
       </a>
     </div>
@@ -150,7 +150,7 @@
         <div class="flex gap-3 max-w-lg mx-auto mt-8">
           <div class="relative flex-1">
             <input id="heroInput" type="text" placeholder="yourname" onkeydown="if(event.key==='Enter') doSearchHero()"
-              class="w-full bg-surface-container-highest border border-white/10 rounded-xl px-5 py-4 text-xl font-headline focus:ring-1 focus:ring-primary-dim outline-none transition-all pr-16" />
+              class="w-full bg-surface-container-highest border border-outline-variant/15 rounded-xl px-5 py-4 text-xl font-headline focus:ring-1 focus:ring-primary-dim outline-none transition-all pr-16" />
             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-primary font-bold text-lg">.arc</span>
           </div>
           <button onclick="doSearchHero()" class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-4 rounded-xl font-bold hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
@@ -166,7 +166,7 @@
       <!-- MAIN RESULT CARD -->
       <section class="relative group">
         <div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-primary-container rounded-full blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-        <div class="relative glass-panel rounded-full p-2 flex flex-col md:flex-row items-center justify-between gap-4 border border-white/5">
+        <div class="relative glass-panel rounded-full p-2 flex flex-col md:flex-row items-center justify-between gap-4 border border-outline-variant/15">
           <div class="flex items-center gap-6 px-6 py-4">
             <div id="resultIcon" class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
               <span class="material-symbols-outlined text-3xl" style="font-variation-settings:'FILL' 1;">verified</span>
@@ -185,7 +185,7 @@
               <p class="text-xs text-on-surface-variant font-label uppercase tracking-widest">Gas cost</p>
               <p class="text-xl font-headline font-bold text-white">~$0.01<span class="text-sm font-normal text-on-surface-variant"> USDC</span></p>
             </div>
-            <div class="w-px h-8 bg-white/10"></div>
+            <div class="w-px h-8 bg-outline-variant/20"></div>
             <button id="registerBtn" onclick="registerName()"
               class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
               Register Now
@@ -199,7 +199,7 @@
 
       <!-- BENTO GRID -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="surface-container-low rounded-full p-8 flex flex-col justify-between border border-white/5 tonal-shift">
+        <div class="bg-surface-container-low rounded-full p-8 flex flex-col justify-between border border-outline-variant/15 tonal-shift">
           <div>
             <span class="material-symbols-outlined text-primary mb-4">event_repeat</span>
             <h3 class="text-lg font-headline font-medium text-white mb-2">Permanent</h3>
@@ -210,7 +210,7 @@
             <span class="text-sm text-on-surface-variant">Days Remaining</span>
           </div>
         </div>
-        <div class="surface-container-low rounded-full p-8 col-span-1 md:col-span-2 relative overflow-hidden group border border-white/5">
+        <div class="bg-surface-container-low rounded-full p-8 col-span-1 md:col-span-2 relative overflow-hidden group border border-outline-variant/15">
           <div class="relative z-10 flex h-full items-center justify-between">
             <div class="max-w-xs">
               <h3 class="text-lg font-headline font-medium text-white mb-2">Arc Node Verified</h3>
@@ -240,7 +240,7 @@
       </section>
 
       <!-- RECENT REGISTRATIONS -->
-      <section class="mt-8 pt-8 border-t border-white/5">
+      <section class="mt-8 pt-8 border-t border-outline-variant/15">
         <h2 class="text-xl font-headline font-bold text-zinc-500 mb-6">Recently Registered</h2>
         <div id="recentList" class="space-y-3">
           <div class="text-zinc-600 text-sm">Loading recent names...</div>
@@ -260,21 +260,21 @@
     </div>
 
     <div id="identitySection" class="hidden space-y-8">
-      <section class="bg-surface-container-low border border-white/5 rounded-2xl p-6 md:p-8">
+      <section class="bg-surface-container-low rounded-2xl p-6 md:p-8">
         <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
           <div class="space-y-3">
             <p class="text-xs uppercase tracking-[0.28em] text-zinc-500 font-label">Identity</p>
             <h1 class="text-4xl font-headline font-bold text-white">Wallet Identity</h1>
             <p class="text-sm text-on-surface-variant max-w-2xl">See every `.arc` name registered by the connected wallet and choose which one should be shown here as your main identity.</p>
           </div>
-          <div id="identityWalletBadge" class="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+          <div id="identityWalletBadge" class="hidden rounded-2xl border border-outline-variant/15 bg-surface-container-high px-4 py-3 text-right">
             <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Connected Wallet</p>
             <p id="identityWalletAddress" class="mt-1 font-mono text-sm text-white"></p>
           </div>
         </div>
       </section>
 
-      <div id="identityConnectState" class="hidden surface-container-low rounded-2xl border border-white/5 p-8 text-center space-y-4">
+      <div id="identityConnectState" class="hidden bg-surface-container-low rounded-2xl p-8 text-center space-y-4">
         <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
           <span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
         </div>
@@ -287,7 +287,7 @@
         </button>
       </div>
 
-      <div id="identityEmptyState" class="hidden surface-container-low rounded-2xl border border-white/5 p-8 text-center space-y-4">
+      <div id="identityEmptyState" class="hidden bg-surface-container-low rounded-2xl p-8 text-center space-y-4">
         <div class="w-14 h-14 rounded-2xl bg-white/5 text-zinc-300 flex items-center justify-center mx-auto">
           <span class="material-symbols-outlined text-3xl">fingerprint</span>
         </div>
@@ -295,17 +295,17 @@
           <h2 class="text-2xl font-headline font-bold text-white">No names registered yet</h2>
           <p class="text-sm text-on-surface-variant max-w-md mx-auto">This wallet does not own any `.arc` names yet. Register one in Domains and it will appear here automatically.</p>
         </div>
-        <button onclick="showSection('domains')" class="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/10 text-white font-bold hover:bg-white/5 transition-all">
+        <button onclick="showSection('domains')" class="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-outline-variant/15 text-white font-bold hover:bg-white/5 transition-all">
           Go to Domains
         </button>
       </div>
 
       <div id="identityContent" class="hidden space-y-6">
         <section class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div class="lg:col-span-2 surface-container-low rounded-2xl border border-white/5 p-8 tonal-shift">
+          <div class="lg:col-span-2 bg-surface-container-low rounded-2xl p-8 tonal-shift">
             <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Primary Name</p>
             <div class="mt-5 space-y-4">
-              <div id="identityAvatarFrame" class="w-20 h-20 rounded-3xl bg-primary/10 text-primary flex items-center justify-center overflow-hidden border border-white/10">
+              <div id="identityAvatarFrame" class="w-20 h-20 rounded-3xl bg-primary/10 text-primary flex items-center justify-center overflow-hidden border border-outline-variant/15">
                 <img id="identityAvatarImage" alt="Profile avatar" class="hidden w-full h-full object-cover" />
                 <span id="identityAvatarFallback" class="material-symbols-outlined text-4xl" style="font-variation-settings:'FILL' 1;">verified</span>
               </div>
@@ -320,7 +320,7 @@
             </div>
           </div>
 
-          <div class="lg:col-span-3 surface-container-low rounded-2xl border border-white/5 p-8">
+          <div class="lg:col-span-3 bg-surface-container-low rounded-2xl p-8">
             <div class="flex items-center justify-between gap-4">
               <div>
                 <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Owned Names</p>
@@ -336,7 +336,7 @@
         </section>
 
         <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div class="surface-container-low rounded-2xl border border-white/5 p-8">
+          <div class="bg-surface-container-low rounded-2xl p-8">
             <div class="flex items-center justify-between gap-4 flex-wrap">
               <div>
                 <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Avatar</p>
@@ -349,21 +349,21 @@
               <button onclick="openPrimaryAvatarPicker()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary text-sm font-bold hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
                 Upload Avatar
               </button>
-              <button onclick="removePrimaryAvatar()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 text-white text-sm font-bold hover:bg-white/5 transition-all">
+              <button onclick="removePrimaryAvatar()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-outline-variant/15 text-white text-sm font-bold hover:bg-white/5 transition-all">
                 Remove Avatar
               </button>
             </div>
             <input id="identityAvatarInput" type="file" accept="image/*" class="hidden" onchange="handlePrimaryAvatarChange(event)" />
           </div>
 
-          <div class="surface-container-low rounded-2xl border border-white/5 p-8">
+          <div class="bg-surface-container-low rounded-2xl p-8">
             <p class="text-xs uppercase tracking-[0.24em] text-zinc-500 font-label">Social</p>
             <h2 class="mt-2 text-2xl font-headline font-bold text-white">Twitter / X</h2>
             <p class="mt-4 text-sm text-on-surface-variant">Link a Twitter handle to the current primary domain profile. Enter only the username, with or without `@`.</p>
             <div class="mt-6 space-y-4">
               <label class="block">
                 <span class="text-sm font-label text-on-surface-variant">Twitter handle</span>
-                <div class="mt-2 flex items-center rounded-xl border border-white/10 bg-white/5 px-4">
+                <div class="mt-2 flex items-center rounded-xl border border-outline-variant/15 bg-surface-container-highest px-4">
                   <span class="text-zinc-500 text-sm">@</span>
                   <input id="identityTwitterInput" type="text" placeholder="yourhandle" class="w-full bg-transparent border-none focus:ring-0 text-white px-2 py-3 text-sm" />
                 </div>
@@ -372,7 +372,7 @@
                 <button onclick="saveIdentityProfileForm()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary text-sm font-bold hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95">
                   Save Profile
                 </button>
-                <button onclick="clearTwitterHandle()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 text-white text-sm font-bold hover:bg-white/5 transition-all">
+                <button onclick="clearTwitterHandle()" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-outline-variant/15 text-white text-sm font-bold hover:bg-white/5 transition-all">
                   Remove Twitter
                 </button>
               </div>
@@ -1084,7 +1084,7 @@ function showIdentityProfileStatus(type, text) {
   el.className = 'rounded-xl p-4 text-sm font-label border ';
   if (type === 'success') el.className += 'bg-green-950/50 border-green-800/50 text-green-400';
   if (type === 'fail') el.className += 'bg-red-950/50 border-red-800/50 text-red-400';
-  if (type === 'info') el.className += 'bg-surface-container border-white/10 text-on-surface-variant';
+  if (type === 'info') el.className += 'bg-surface-container border-outline-variant/15 text-on-surface-variant';
 }
 
 function hideIdentityProfileStatus() {
@@ -1311,7 +1311,7 @@ async function loadIdentityView() {
   listEl.innerHTML = names.map((name) => {
     const isPrimary = name === primaryName;
     return `
-      <div class="surface-container-low rounded-2xl border ${isPrimary ? 'border-primary/40' : 'border-white/5'} p-5 flex flex-col gap-4">
+      <div class="bg-surface-container-low rounded-2xl border ${isPrimary ? 'border-primary/40' : 'border-outline-variant/15'} p-5 flex flex-col gap-4">
         <div class="flex items-start justify-between gap-4">
           <div>
             <div class="flex items-center gap-2 flex-wrap">
@@ -1323,10 +1323,10 @@ async function loadIdentityView() {
           <a href="${EXPLORER}/address/${userAddress}" target="_blank" class="text-xs font-mono text-zinc-400 hover:text-primary transition-colors">${userAddress.slice(0, 8)}...${userAddress.slice(-6)}</a>
         </div>
         <div class="flex flex-wrap gap-3">
-          <button onclick="setPrimaryName('${name}')" class="${isPrimary ? 'bg-primary/15 text-primary border-primary/20' : 'border-white/10 text-white hover:bg-white/5'} inline-flex items-center justify-center px-4 py-2 rounded-xl border text-sm font-bold transition-all">
+          <button onclick="setPrimaryName('${name}')" class="${isPrimary ? 'bg-primary/15 text-primary border-primary/20' : 'border-outline-variant/15 text-white hover:bg-surface-container-highest'} inline-flex items-center justify-center px-4 py-2 rounded-xl border text-sm font-bold transition-all">
             ${isPrimary ? 'Primary Selected' : 'Set as Primary'}
           </button>
-          <button onclick="useIdentityName('${name}')" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 text-white text-sm font-bold hover:bg-white/5 transition-all">
+          <button onclick="useIdentityName('${name}')" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-outline-variant/15 text-white text-sm font-bold hover:bg-surface-container-highest transition-all">
             Open in Domains
           </button>
         </div>
@@ -1349,16 +1349,18 @@ function useIdentityName(name) {
 
 // ─── SEARCH ──────────────────────────────────────────────────────────────────
 function doSearchHero() {
-  const val = document.getElementById('heroInput').value.trim().toLowerCase();
+  const val = document.getElementById('heroInput').value.trim().toLowerCase().replace(/\.arc$/i, '');
   if (!val) return;
   document.getElementById('searchInput').value = val;
+  document.getElementById('heroInput').value = val;
   showSection('domains');
   performSearch(val);
 }
 function doSearch() {
-  const val = document.getElementById('searchInput').value.trim().toLowerCase();
+  const val = document.getElementById('searchInput').value.trim().toLowerCase().replace(/\.arc$/i, '');
   if (!val) return;
   document.getElementById('heroInput').value = val;
+  document.getElementById('searchInput').value = val;
   showSection('domains');
   performSearch(val);
 }
@@ -1453,13 +1455,13 @@ async function performSearch(name) {
       document.getElementById('resultAction').innerHTML = `
         <div class="flex items-center gap-3 px-4 flex-wrap justify-end">
           <button onclick="startNewSearch()"
-             class="border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-white/5 transition-all">New Search</button>
+             class="border border-outline-variant/15 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-surface-container-highest transition-all">New Search</button>
           ${profile.twitter ? `<a href="https://x.com/${profile.twitter}" target="_blank"
              class="border border-primary/20 text-primary rounded-full px-5 py-2 text-sm font-bold hover:bg-primary/10 transition-all">@${profile.twitter}</a>` : ''}
           <a href="${EXPLORER}/address/${owner}" target="_blank"
              class="text-sm font-mono text-zinc-400 hover:text-primary transition-colors">${short}</a>
           <a href="${EXPLORER}/address/${CONTRACT_ADDRESS}" target="_blank"
-             class="border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-white/5 transition-all">View on Explorer</a>
+             class="border border-outline-variant/15 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-surface-container-highest transition-all">View on Explorer</a>
         </div>`;
     }
 
@@ -1520,7 +1522,7 @@ function renderTakenDomainProfile(owner, name, profile) {
   meta.classList.remove('hidden');
 
   if (profile?.avatar) {
-    icon.className = 'w-12 h-12 rounded-full overflow-hidden border border-white/10 bg-white/5';
+    icon.className = 'w-12 h-12 rounded-full overflow-hidden border border-outline-variant/15 bg-surface-container-highest';
     icon.innerHTML = `<img src="${profile.avatar}" alt="${name}.arc avatar" class="w-full h-full object-cover" />`;
   }
 }
@@ -1591,7 +1593,7 @@ async function finalizeSuccessfulRegistration(txHash, name) {
     <div class="flex items-center gap-4 px-4">
       <span class="text-green-400 font-bold text-sm">🎉 Yours!</span>
       <a href="${EXPLORER}/tx/${txHash}" target="_blank"
-         class="border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-white/5 transition-all">View TX ↗</a>
+         class="border border-outline-variant/15 rounded-full px-5 py-2 text-sm font-bold text-white hover:bg-surface-container-highest transition-all">View TX ↗</a>
     </div>`;
   cache.recentLogs.ts = 0;
   cache.totalCount.ts = 0;
@@ -1775,7 +1777,7 @@ async function loadSuggestions(name) {
 
   const list = document.getElementById('suggestionsList');
   list.innerHTML = variants.map(v => `
-    <div class="surface-container-low p-4 rounded-full border border-white/5 flex items-center justify-between group hover:bg-surface-container-high transition-colors" id="sug-${v}">
+    <div class="bg-surface-container-low p-4 rounded-full border border-outline-variant/15 flex items-center justify-between group hover:bg-surface-container-high transition-colors" id="sug-${v}">
       <div class="flex items-center gap-4 px-2">
         <span class="font-headline font-medium text-white">${v}.arc</span>
         <span id="sug-badge-${v}" class="text-xs text-zinc-600">checking...</span>
@@ -1819,7 +1821,7 @@ async function loadRecentNames() {
       const owner   = decoded.args[1];
       const short   = owner.slice(0,6) + '...' + owner.slice(-4);
       return `
-      <div class="glass-panel border border-white/5 rounded-full p-5 flex items-center justify-between">
+      <div class="glass-panel border border-outline-variant/15 rounded-full p-5 flex items-center justify-between">
         <div class="flex items-center gap-5">
           <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <span class="material-symbols-outlined text-primary text-sm">badge</span>
@@ -1835,7 +1837,7 @@ async function loadRecentNames() {
           </div>
         </div>
         <a href="${EXPLORER}/tx/${log.transactionHash}" target="_blank"
-           class="px-4 py-2 border border-white/10 rounded-full text-xs font-bold text-white hover:bg-white/5 transition-all">
+           class="px-4 py-2 border border-outline-variant/15 rounded-full text-xs font-bold text-white hover:bg-surface-container-highest transition-all">
           View TX ↗
         </a>
       </div>`;
@@ -1887,7 +1889,7 @@ async function loadMyNames() {
     if (names.length > 0) {
       panel.classList.remove('hidden');
       pList.innerHTML = names.map(n => `
-        <div class="glass-panel border border-white/5 rounded-full p-5 flex items-center justify-between">
+        <div class="glass-panel border border-outline-variant/15 rounded-full p-5 flex items-center justify-between">
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <span class="material-symbols-outlined text-primary">badge</span>
@@ -1898,7 +1900,7 @@ async function loadMyNames() {
             </div>
           </div>
           <a href="${EXPLORER}/address/${userAddress}" target="_blank"
-             class="px-4 py-2 border border-white/10 rounded-full text-xs font-bold text-white hover:bg-white/5 transition-all">View ↗</a>
+             class="px-4 py-2 border border-outline-variant/15 rounded-full text-xs font-bold text-white hover:bg-surface-container-highest transition-all">View ↗</a>
         </div>`).join('');
     } else {
       panel.classList.add('hidden');
@@ -1914,7 +1916,7 @@ function showTx(type, html) {
   el.classList.remove('hidden');
   el.innerHTML = html;
   el.className = 'rounded-xl p-4 text-sm font-label border ';
-  if (type === 'pending') el.className += 'bg-surface-container border-white/10 text-on-surface-variant';
+  if (type === 'pending') el.className += 'bg-surface-container border-outline-variant/15 text-on-surface-variant';
   if (type === 'success') el.className += 'bg-green-950/50 border-green-800/50 text-green-400';
   if (type === 'fail')    el.className += 'bg-red-950/50 border-red-800/50 text-red-400';
 }
