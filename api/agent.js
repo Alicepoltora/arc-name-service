@@ -41,14 +41,98 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { messages } = req.body || {};
+  const { action, theme, messages } = req.body || {};
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (action === "brainstorm") {
+    if (!theme) {
+      res.status(400).json({ error: "Theme is required for brainstorm action" });
+      return;
+    }
+
+    const fallbackSuggestions = {
+      cyberpunk: ["cyber-node", "neon-net", "matrix-core", "neuro-byte", "grid-runner", "synth-link", "dark-data", "hacker-space", "nano-chip", "arc-wire"],
+      defi: ["yield-arc", "liq-pool", "alpha-lend", "swap-dex", "vault-core", "farm-grow", "asset-mint", "smart-rate", "flow-pay", "trade-opt"],
+      gaming: ["lvl-up", "boss-fight", "quest-log", "loot-drop", "xp-gain", "guild-arc", "play-win", "pixel-hero", "mana-potion", "game-loop"],
+      nft: ["rare-canvas", "mint-art", "pixel-gallery", "block-draw", "meta-frame", "art-vault", "nft-pulse", "unique-copy", "sketch-net", "color-wave"],
+      memes: ["wen-moon", "doge-run", "hype-train", "gem-finder", "pepe-node", "shib-wallet", "chad-alpha", "frog-jump", "fomo-guard", "bags-hold"],
+      identity: ["solo-node", "citizen-arc", "key-pass", "my-home", "net-id", "core-profile", "web3-avatar", "ans-holder", "pass-port", "base-card"]
+    };
+
+    const suggestions = fallbackSuggestions[theme.toLowerCase()] || fallbackSuggestions.identity;
+
+    if (!apiKey) {
+      res.status(200).json({ suggestions });
+      return;
+    }
+
+    try {
+      const systemInstruction = `You are the official ARC Name Service (ANS) AI Assistant. Your task is to brainstorm 10 unique, highly creative domain names suitable for the selected theme: "${theme}".
+      
+Rules:
+1. The domain names must be relevant to the theme.
+2. Return ONLY a raw JSON array of strings containing the brainstormed domain names, e.g. ["example-one", "example-two"]. Do not output any markdown code blocks (like \`\`\`json), explanations, comments, or extra text.
+3. Each name must use ONLY lowercase alphanumeric characters and hyphens (a-z, 0-9, -). No spaces, no periods, no capitals, no other special characters.
+4. The length of each name must be between 3 and 32 characters. Do not append ".arc".
+5. Generate exactly 10 domain names.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            role: "user",
+            parts: [{ text: `Brainstorm 10 domains for the theme "${theme}" according to the instructions.` }]
+          }],
+          systemInstruction: {
+            parts: [{ text: systemInstruction }]
+          },
+          generationConfig: {
+            maxOutputTokens: 300,
+            temperature: 0.7,
+            responseMimeType: "application/json"
+          }
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || `Gemini API failed with status ${response.status}`);
+      }
+
+      let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      reply = reply.trim();
+      
+      if (reply.startsWith("```")) {
+        reply = reply.replace(/^```(json)?/, "").replace(/```$/, "").trim();
+      }
+
+      const aiSuggestions = JSON.parse(reply);
+      if (Array.isArray(aiSuggestions) && aiSuggestions.length > 0) {
+        const validated = aiSuggestions
+          .map(s => String(s).toLowerCase().replace(/[^a-z0-9-]/g, ""))
+          .filter(s => s.length >= 3 && s.length <= 32);
+        
+        if (validated.length > 0) {
+          res.status(200).json({ suggestions: validated.slice(0, 10) });
+          return;
+        }
+      }
+      res.status(200).json({ suggestions });
+    } catch (error) {
+      console.warn("Brainstorm fetch error, falling back to static lists:", error.message || error);
+      res.status(200).json({ suggestions });
+    }
+    return;
+  }
+
   if (!Array.isArray(messages) || messages.length === 0) {
     res.status(400).json({ error: "Messages array is required" });
     return;
   }
 
   const lastUserMessage = messages[messages.length - 1]?.content || "";
-  const apiKey = process.env.GEMINI_API_KEY;
+
 
   if (!apiKey) {
     // Graceful fallback helper when Gemini API Key is not set on Vercel
