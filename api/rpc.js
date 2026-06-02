@@ -62,8 +62,16 @@ module.exports = async function handler(req, res) {
 
       if (payload?.error) {
         const message = payload.error.message || `RPC ${method} failed`;
-        errors.push({ status: 200, message });
-        throw new Error(message);
+        if (isRateLimited(200, message)) {
+          errors.push({ status: 429, message });
+          if (attempt < attempts - 1) {
+            await delay(200 * (attempt + 1));
+            continue;
+          }
+        } else {
+          res.status(400).json({ error: message });
+          return;
+        }
       }
 
       res.setHeader("Cache-Control", "s-maxage=5, stale-while-revalidate=30");
