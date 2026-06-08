@@ -26,13 +26,13 @@ Here is the exact technical knowledge you must use:
    - "Insufficient gas / low estimate": ARC Testnet uses USDC for gas. They need USDC from Circle Faucet.
    - "NameTooShort / NameTooLong / InvalidCharacter": Explain ANS naming rules (3-32 chars, lowercase a-z, 0-9, hyphen only).
 
-Be concise, supportive, and structure your responses with markdown bullets and bold text. Keep answers brief so they fit well in a chat drawer. Avoid general pleasantries; get straight to solving the problem.`;
+Be concise, supportive, and structure your responses with markdown bullets and bold text. Keep answers brief so they fit well in a chat drawer. Avoid general pleasantries; get straight to solving the problem. IMPORTANT: Always respond strictly in English. Under no circumstances should you respond in Russian or any other language.`;
 
 const FALLBACK_ANSWERS = {
-  default: "Привет! Я твой онбординг-помощник в сети **ARC**. Я могу помочь тебе настроить кошелек, получить токены или решить проблемы с транзакциями. Задай мне любой вопрос!",
-  faucet: "Чтобы получить тестовые USDC для оплаты газа в сети **ARC Testnet**:\n1. Перейди на официальный **Circle Faucet**: https://faucet.circle.com\n2. Выбери сеть **ARC Testnet** в списке сетей.\n3. Скопируй свой адрес кошелька и вставь его в поле ввода.\n4. Нажми кнопку подтверждения. Токены зачислятся в течение нескольких секунд.",
-  wallet: "Рекомендуемые кошельки для **ARC Testnet**:\n*   **Rabby Wallet** (рекомендуется): Работает стабильно из коробки, отлично определяет балансы и параметры газа.\n*   **MetaMask**: Работает, но иногда выдает ошибки. Если транзакции зависают, удали сеть ARC Testnet из настроек MetaMask и добавь заново прямо с этого сайта.\n\nПараметры для ручного добавления сети:\n*   Имя сети: `ARC Testnet`\n*   Chain ID: `5042002`\n*   Символ валюты: `USDC`\n*   RPC URL: `https://rpc.testnet.arc.network`\n*   Explorer: `https://testnet.arcscan.app`",
-  error: "Если транзакция не проходит или выдает ошибку:\n1. Убедись, что у тебя есть тестовые USDC на балансе для оплаты газа.\n2. Если имя домена занято или содержит недопустимые символы (разрешены только `a-z`, `0-9` и дефис `-`), контракт отклонит транзакцию.\n3. В MetaMask часто помогает сброс кошелька или удаление сети ARC Testnet с последующим передобавлением."
+  default: "Hi! I am your onboarding assistant on the **ARC** network. I can help you set up your wallet, get testnet tokens, or troubleshoot transactions. Ask me anything!",
+  faucet: "To get testnet USDC for gas on **ARC Testnet**:\n1. Go to the official **Circle Faucet**: https://faucet.circle.com\n2. Select **ARC Testnet** from the network list.\n3. Copy and paste your wallet address.\n4. Click submit. Tokens will arrive in a few seconds.",
+  wallet: "Recommended wallets for **ARC Testnet**:\n*   **Rabby Wallet** (highly recommended): Works out of the box, correctly estimates gas and balances.\n*   **MetaMask**: Works, but sometimes fails. If transactions are stuck, remove ARC Testnet from your network settings and add it again from this site.\n\nManual Network settings:\n*   Network Name: `ARC Testnet`\n*   Chain ID: `5042002`\n*   Currency Symbol: `USDC`\n*   RPC URL: `https://rpc.testnet.arc.network`\n*   Explorer: `https://testnet.arcscan.app`",
+  error: "If your transaction fails:\n1. Make sure you have testnet USDC to pay for gas.\n2. If the domain is taken or contains invalid characters (only `a-z`, `0-9`, and hyphen `-` are allowed), the contract will reject it.\n3. In MetaMask, resetting your account or re-adding the network often helps."
 };
 
 module.exports = async function handler(req, res) {
@@ -138,11 +138,11 @@ Rules:
     // Graceful fallback helper when Gemini API Key is not set on Vercel
     const text = lastUserMessage.toLowerCase();
     let reply = FALLBACK_ANSWERS.default;
-    if (text.includes("кран") || text.includes("faucet") || text.includes("токен") || text.includes("usdc")) {
+    if (text.includes("faucet") || text.includes("token") || text.includes("usdc") || text.includes("claim")) {
       reply = FALLBACK_ANSWERS.faucet;
-    } else if (text.includes("кошел") || text.includes("wallet") || text.includes("metamask") || text.includes("rabby") || text.includes("настро")) {
+    } else if (text.includes("wallet") || text.includes("metamask") || text.includes("rabby") || text.includes("setup") || text.includes("config")) {
       reply = FALLBACK_ANSWERS.wallet;
-    } else if (text.includes("ошибк") || text.includes("error") || text.includes("завис") || text.includes("не проходит") || text.includes("транза")) {
+    } else if (text.includes("error") || text.includes("fail") || text.includes("stuck") || text.includes("pending") || text.includes("transaction")) {
       reply = FALLBACK_ANSWERS.error;
     }
     res.status(200).json({ reply });
@@ -180,7 +180,7 @@ Rules:
       throw new Error(data.error?.message || `Gemini API failed with status ${response.status}`);
     }
 
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Извини, не удалось сформировать ответ. Попробуй еще раз.";
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, failed to generate a reply. Please try again.";
     res.status(200).json({ reply });
   } catch (error) {
     res.status(500).json({ error: error.message || "Failed to process AI query" });
